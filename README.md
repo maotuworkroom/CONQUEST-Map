@@ -13,6 +13,12 @@
 | 歐洲制霸 | `europe-conquest/` | 歐洲國家制霸記錄器 |
 | 澳洲制霸 | `australia-conquest/` | 澳洲制霸記錄器 |
 | 海洋制霸 | `sea-conquest/` | 海洋制霸（數據與構建腳本，頁面製作中） |
+| 俄羅斯制霸 | `russia-conquest/` | 俄羅斯聯邦主體制霸記錄器 |
+| 加拿大制霸 | `canada-conquest/` | 加拿大省份/地區制霸記錄器 |
+| 冰島制霸 | `iceland-conquest/` | 冰島地區制霸記錄器 |
+| 中東制霸 | `middle-east-conquest/` | 中東國家/地區制霸記錄器 |
+| 南美制霸 | `south-america-conquest/` | 南美洲國家制霸記錄器 |
+| 印度制霸 | `india-conquest/` | 印度邦/聯邦屬地制霸記錄器 |
 
 ## 運行方式
 
