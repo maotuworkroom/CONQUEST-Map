@@ -1,0 +1,88 @@
+<script>
+/* ============================================================
+   資料：非洲 55 國與地區（ISO 3166-1 alpha-3 對應 id 1-55）
+   ============================================================ */
+const REGIONS = {
+  '北非':{name:'北非', ids:[1,2,3,4,5,6,7]},
+  '西非':{name:'西非', ids:[8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]},
+  '中非':{name:'中非', ids:[24,25,26,27,28,29,30,31,32]},
+  '東非':{name:'東非', ids:[33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50]},
+  '南非':{name:'南非', ids:[51,52,53,54,55]},
+};
+
+const COUNTRIES = {
+ 1:{loc:'الجزائر',zh:'阿爾及利亞',en:'Algeria',fr:'Algérie',region:'北非',tagline:'撒哈拉佔據國土八成的北非大國，羅馬遺跡與沙漠綠洲並存。',food:['庫斯庫斯','塔吉鍋','烤全羊','椰棗'],spots:['提帕薩羅馬遺址','蓋爾達耶古城','塔西利·恩·阿傑爾岩畫','阿爾及爾卡斯巴'],matsuri:['撒哈拉沙漠節']},
+ 2:{loc:'مصر',zh:'埃及',en:'Egypt',fr:'Égypte',region:'北非',tagline:'金字塔與尼羅河，人類古文明的燈塔，北非的門戶。',food:['庫莎麗','烤肉串','蠶豆泥','埃及燒雞'],spots:['吉薩金字塔群','獅身人面像','盧克索神廟','阿布辛貝神廟'],matsuri:['阿布辛貝太陽節']},
+ 3:{loc:'ليبيا',zh:'利比亞',en:'Libya',fr:'Libye',region:'北非',tagline:'地中海南岸的羅馬古都與撒哈拉綠洲，未被過度打擾的荒野。',food:['庫斯庫斯','巴津烤肉','鯛魚飯'],spots:['萊普提斯·馬格納','薩布拉塔遺址','阿卡庫斯岩畫','的黎波里紅堡'],matsuri:['古爾邦節']},
+ 4:{loc:'المغرب',zh:'摩洛哥',en:'Morocco',fr:'Maroc',region:'北非',tagline:'撒哈拉之門與四大皇城，藍色小鎮與香料市集交織的國度。',food:['塔吉鍋','庫斯庫斯','薄荷茶','羊肉串'],spots:['馬拉喀什德吉瑪廣場','舍夫沙萬藍城','撒哈拉梅爾祖卡','菲斯古城'],matsuri:['馬拉喀什流行藝術節']},
+ 5:{loc:'السودان',zh:'蘇丹',en:'Sudan',fr:'Soudan',region:'北非',tagline:'尼羅河與努比亞金字塔之鄉，世界遺產密度極高的國度。',food:['富爾豆泥','蘇丹烤肉','基斯拉煎餅'],spots:['麥羅埃金字塔','蘇丹國家博物館','棟古拉老城','紅海蘇丹港'],matsuri:['努比亞文化節']},
+ 6:{loc:'تونس',zh:'突尼斯',en:'Tunisia',fr:'Tunisie',region:'北非',tagline:'迦太基與藍白小鎮，撒哈拉之門與羅馬劇場並存。',food:['庫斯庫斯','布里克炸餅','哈里薩辣醬','椰棗'],spots:['迦太基遺址','西迪布賽義德','埃爾傑姆鬥獸場','撒哈拉杜茲'],matsuri:['撒哈拉節']},
+ 7:{loc:'الصحراء الغربية',zh:'西撒哈拉',en:'Western Sahara',fr:'Sahara occidental',region:'北非',tagline:'大西洋與撒哈拉交界的爭議之地，無盡沙丘與荒漠海岸。',food:['駱駝肉','薄荷茶','椰棗'],spots:['達赫拉潟湖','阿爾萬角','荒漠公路'],matsuri:['達赫拉衝浪節']},
+ 8:{loc:'Bénin',zh:'貝寧',en:'Benin',fr:'Bénin',region:'西非',tagline:'伏都教與水上村莊，承載奴隸海岸歷史的西非之心。',food:['阿卡拉豆餅','玉米糊','烤魚'],spots:['岡維埃水上村莊','阿波美王宮','維達歷史城','彭賈里國家公園'],matsuri:['維達伏都節']},
+ 9:{loc:'Burkina Faso',zh:'布基納法索',en:'Burkina Faso',fr:'Burkina Faso',region:'西非',tagline:'西非內陸的「君子之國」，莫西文明與土坯建築之鄉。',food:['塔奧烤雞','小米粥','芒果'],spots:['洛羅佩尼遺址','瓦加杜古','班福拉瀑布'],matsuri:['瓦加杜古泛非電影節']},
+ 10:{loc:'Cabo Verde',zh:'佛得角',en:'Cabo Verde',fr:'Cap-Vert',region:'西非',tagline:'大西洋中的十座火山島，克里奧爾音樂與慵懶沙灘。',food:['卡丘帕燉魚','玉米粥','朗姆酒'],spots:['明德盧','聖安唐峰','薩爾島沙灘','福戈火山'],matsuri:['明德盧狂歡節']},
+ 11:{loc:'Côte d’Ivoire',zh:'科特迪瓦',en:'Ivory Coast',fr:'Côte d’Ivoire',region:'西非',tagline:'可可之國與亞穆蘇克羅大教堂，西非的經濟心臟。',food:['阿提耶克木薯飯','烤雞','可可'],spots:['亞穆蘇克羅和平聖母大教堂','塔伊國家公園','阿比讓瀉湖','大巴萨姆'],matsuri:['迪姆布拉節']},
+ 12:{loc:'Gambia',zh:'岡比亞',en:'Gambia',fr:'Gambie',region:'西非',tagline:'沿岡比亞河展開的狹長國度，紅鸚鵡與鳥類天堂。',food:['多姆達米','花生燉菜','烤魚'],spots:['岡比亞河','昆塔金特島','阿布科自然保護區'],matsuri:['根特文化節']},
+ 13:{loc:'Ghana',zh:'加納',en:'Ghana',fr:'Ghana',region:'西非',tagline:'黃金海岸的古堡與可可農場，非洲最熱情好客的國度。',food:['富富','加里','紅紅燉肉','烤鯰魚'],spots:['海岸角城堡','埃爾米納城堡','莫爾國家公園','庫馬西'],matsuri:['阿布阿姆節']},
+ 14:{loc:'Guinée',zh:'幾內亞',en:'Guinea',fr:'Guinée',region:'西非',tagline:'富塔賈隆高原與尼日爾河源頭，西非的「水塔」。',food:['花生醬燉菜','米飯','芒果'],spots:['富塔賈隆高原','尼日爾河源頭','洛拉'],matsuri:['富塔賈隆音樂節']},
+ 15:{loc:'Guiné-Bissau',zh:'幾內亞比紹',en:'Guinea-Bissau',fr:'Guinée-Bissau',region:'西非',tagline:'比扎戈斯群島的海龜與無車島嶼，西非秘境。',food:['海鮮燉飯','木薯','腰果'],spots:['比扎戈斯群島','布巴克島','若昂維埃拉'],matsuri:['群島音樂節']},
+ 16:{loc:'Liberia',zh:'利比里亞',en:'Liberia',fr:'Liberia',region:'西非',tagline:'非洲最古老共和國，大西洋棕櫚海岸與雨林國家公園。',food:['棕櫚油燉菜','大米','木薯葉'],spots:['蒙羅維亞','薩波國家公園','羅伯茨波特海灘'],matsuri:['獨立日慶典']},
+ 17:{loc:'Mali',zh:'馬里',en:'Mali',fr:'Mali',region:'西非',tagline:'廷巴克圖與傑內大清真寺，沙漠商路的文明中心。',food:['傑內魚飯','小米粥','花生醬'],spots:['傑內古城','廷巴克圖','多貢懸崖','班迪亞加拉'],matsuri:['沙漠音樂節']},
+ 18:{loc:'موريتانيا',zh:'毛里塔尼亞',en:'Mauritania',fr:'Mauritanie',region:'西非',tagline:'欣蓋提古城與撒哈拉之心，駱駝商隊的沙漠國度。',food:['駱駝奶','庫斯米','烤全羊'],spots:['欣蓋提古城','班克達爾根國家公園','阿德拉爾高原','努瓦克肖特'],matsuri:['駱駝節']},
+ 19:{loc:'Niger',zh:'尼日爾',en:'Niger',fr:'Niger',region:'西非',tagline:'阿伊爾山脈與圖阿雷格藍人，撒哈拉邊緣的遊牧之國。',food:['小米粥','花生','駱駝奶'],spots:['阿加德茲古城','阿伊爾山脈','泰內雷沙漠','尼日爾河'],matsuri:['庫爾特音樂節']},
+ 20:{loc:'Nigeria',zh:'尼日利亞',en:'Nigeria',fr:'Nigeria',region:'西非',tagline:'非洲人口第一大國，諾萊塢電影與拉各斯的活力。',food:['喬洛夫飯','蘇亞烤肉','埃古斯湯'],spots:['拉各斯','祖馬岩','奧蘇博聖林','尼日爾河三角洲'],matsuri:['菲斯蒂瓦爾節']},
+ 21:{loc:'Sénégal',zh:'塞內加爾',en:'Senegal',fr:'Sénégal',region:'西非',tagline:'達喀爾與玫瑰湖，薩赫勒音樂與戈雷島歷史交匯。',food:['傑本魚飯','蒂亞','花生醬'],spots:['玫瑰湖','戈雷島','達喀爾','聖路易斯'],matsuri:['達喀爾雙年展']},
+ 22:{loc:'Sierra Leone',zh:'塞拉利昂',en:'Sierra Leone',fr:'Sierra Leone',region:'西非',tagline:'弗里敦的香蕉島與熱帶雨林，西非的海灘秘境。',food:['木薯葉燉菜','米飯','棕櫚油'],spots:['香蕉島','蒂瓦伊島','弗里敦','勞馬國家公園'],matsuri:['弗里敦音樂節']},
+ 23:{loc:'Togo',zh:'多哥',en:'Togo',fr:'Togo',region:'西非',tagline:'庫塔馬庫泥塔與巫毒市場，狹長國土上的多元文化。',food:['玉米糊','花生醬','烤魚'],spots:['庫塔馬庫','洛美','阿塔科拉山'],matsuri:['埃佩埃伏都節']},
+ 24:{loc:'Angola',zh:'安哥拉',en:'Angola',fr:'Angola',region:'中非',tagline:'羅安達海濱與寬扎河，歷經重生的大西洋之國。',food:['穆安巴雞','木薯粉','烤魚'],spots:['羅安達','寬扎河','卡蘭杜拉瀑布','納米貝沙漠'],matsuri:['羅安達嘉年華']},
+ 25:{loc:'Cameroun',zh:'喀麥隆',en:'Cameroon',fr:'Cameroun',region:'中非',tagline:'「非洲縮影」，火山、雨林、草原與部落文化齊聚。',food:['恩多萊燉菜','炸大蕉','烤魚'],spots:['喀麥隆山','林貝黑沙灘','瓦扎國家公園','雅溫得'],matsuri:['恩圭恩節']},
+ 26:{loc:'République centrafricaine',zh:'中非共和國',en:'Central African Republic',fr:'République centrafricaine',region:'中非',tagline:'剛果盆地雨林的心臟，大象與俾格米人之鄉。',food:['木薯','燉肉','芒果'],spots:['桑加國家公園','博阿利瀑布','班吉'],matsuri:['博古姆節']},
+ 27:{loc:'Tchad',zh:'乍得',en:'Chad',fr:'Tchad',region:'中非',tagline:'恩內迪高原的岩拱與乍得湖，撒哈拉與薩赫勒的交界。',food:['小米粥','烤魚','花生'],spots:['恩內迪高原','乍得湖','扎庫馬國家公園'],matsuri:['蓋雷達駱駝節']},
+ 28:{loc:'Congo-Brazzaville',zh:'剛果共和國',en:'Republic of the Congo',fr:'Congo-Brazzaville',region:'中非',tagline:'奧扎拉雨林與黑角海岸，剛果河畔的綠意之國。',food:['木薯葉','烤魚','薩卡薩卡'],spots:['奧扎拉國家公園','黑角','剛果河','盧菲里'],matsuri:['黑角音樂節']},
+ 29:{loc:'Congo-Kinshasa',zh:'剛果民主共和國',en:'DR Congo',fr:'Congo-Kinshasa',region:'中非',tagline:'維龍加火山與山地大猩猩，剛果河的壯闊源頭。',food:['龐杜','燉肉','木薯'],spots:['維龍加國家公園','剛果河','戈馬','卡胡齊別加'],matsuri:['戈馬音樂節']},
+ 30:{loc:'Guinea Ecuatorial',zh:'赤道幾內亞',en:'Equatorial Guinea',fr:'Guinée équatoriale',region:'中非',tagline:'比奧科島火山與西班牙殖民建築，中非的石油小國。',food:['燉大蕉','烤魚','木薯'],spots:['馬拉博','巴希萊峰','盧巴'],matsuri:['馬拉博嘉年華']},
+ 31:{loc:'Gabon',zh:'加蓬',en:'Gabon',fr:'Gabon',region:'中非',tagline:'洛佩國家公園的雨林與草原交會，大象與座頭鯨的國度。',food:['尼永貝','烤魚','木薯'],spots:['洛佩國家公園','利伯維爾','伊溫多河','讓蒂爾港'],matsuri:['利伯維爾音樂節']},
+ 32:{loc:'São Tomé e Príncipe',zh:'聖多美和普林西比',en:'São Tomé and Príncipe',fr:'Sao Tomé-et-Principe',region:'中非',tagline:'赤道線上的巧克力之島，火山雨林與黑沙灘。',food:['巧克力','烤魚','木薯'],spots:['聖多美城','普林西比島','奧博國家公園'],matsuri:['聖多美節慶']},
+ 33:{loc:'Burundi',zh:'布隆迪',en:'Burundi',fr:'Burundi',region:'東非',tagline:'坦噶尼喀湖畔的千丘之國，鼓樂與咖啡之鄉。',food:['豆子燉菜','烤香蕉','木薯'],spots:['坦噶尼喀湖','布瓊布拉','吉舒拉瀑布'],matsuri:['布隆迪鼓節']},
+ 34:{loc:'Comores',zh:'科摩羅',en:'Comoros',fr:'Comores',region:'東非',tagline:'印度洋中的「香水群島」，火山島與依蘭依蘭花田。',food:['海鮮燉菜','香草','依蘭依蘭'],spots:['莫羅尼','卡爾塔拉火山','莫埃利島'],matsuri:['大科摩羅節']},
+ 35:{loc:'Djibouti',zh:'吉布提',en:'Djibouti',fr:'Djibouti',region:'東非',tagline:'阿薩爾鹽湖與塔朱拉灣，非洲之角的火山仙境。',food:['烤肉','海鮮','蓋蒂'],spots:['阿薩爾鹽湖','塔朱拉灣','吉布提市','阿貝湖'],matsuri:['吉布提文化節']},
+ 36:{loc:'ኤርትራ',zh:'厄立特里亞',en:'Eritrea',fr:'Érythrée',region:'東非',tagline:'阿斯馬拉的新藝術建築，紅海沿岸的義大利風情。',food:['英傑拉','燉肉','紅海海鮮'],spots:['阿斯馬拉','馬薩瓦','達赫拉克群島'],matsuri:['阿斯馬拉音樂節']},
+ 37:{loc:'ኢትዮጵያ',zh:'埃塞俄比亞',en:'Ethiopia',fr:'Éthiopie',region:'東非',tagline:'拉利貝拉岩石教堂與咖啡原鄉，非洲唯一未曾被殖民的古國。',food:['英傑拉','多多瓦','咖啡','蜂蜜酒'],spots:['拉利貝拉','貢德爾','奧莫河谷','阿克蘇姆'],matsuri:['蒂姆卡特節']},
+ 38:{loc:'Kenya',zh:'肯尼亞',en:'Kenya',fr:'Kenya',region:'東非',tagline:'馬賽馬拉大遷徙與桑布魯，東非野生動物的舞台。',food:['尼亞馬烤肉','烏加利','查伊奶茶'],spots:['馬賽馬拉','安博塞利','內羅畢','蒙巴薩海灘'],matsuri:['拉穆文化節']},
+ 39:{loc:'Madagasikara',zh:'馬達加斯加',en:'Madagascar',fr:'Madagascar',region:'東非',tagline:'猴麵包樹大道與狐猴，世界第四大島的奇異生態。',food:['羅馬薩瓦燉肉','瓦佐煎餅','芒果'],spots:['猴麵包樹大道','伊莎盧國家公園','塔那那利佛','貝馬拉哈'],matsuri:['費蒂節']},
+ 40:{loc:'Malawi',zh:'馬拉維',en:'Malawi',fr:'Malawi',region:'東非',tagline:'馬拉維湖的碧水與魚群，「非洲溫暖之心」。',food:['恩西馬','湖魚','烤雞'],spots:['馬拉維湖','利科馬島','姆蘭傑山'],matsuri:['湖泊節']},
+ 41:{loc:'Maurice',zh:'毛里求斯',en:'Mauritius',fr:'Maurice',region:'東非',tagline:'七色土與莫納山，印度洋上的度假天堂。',food:['咖哩','加東沙拉','羅蒂'],spots:['莫納山','七色土','鹿島','卡塞拉公園'],matsuri:['卡瓦迪節']},
+ 42:{loc:'Moçambique',zh:'莫桑比克',en:'Mozambique',fr:'Mozambique',region:'東非',tagline:'巴扎魯托群島與印度洋，葡萄牙殖民遺產的海岸國度。',food:['佩里佩里雞','烤蝦','木薯'],spots:['巴扎魯托群島','莫桑比克島','馬普托','戈龍戈薩'],matsuri:['馬普托音樂節']},
+ 43:{loc:'Rwanda',zh:'盧旺達',en:'Rwanda',fr:'Rwanda',region:'東非',tagline:'千丘之國的火山國家公園，山地大猩猩的故鄉。',food:['燉豆','烤香蕉','烏加利'],spots:['火山國家公園','基加利','紐恩威雨林','基伍湖'],matsuri:['基加利音樂節']},
+ 44:{loc:'Seychelles',zh:'塞舌爾',en:'Seychelles',fr:'Seychelles',region:'東非',tagline:'花崗岩巨礫與粉白沙灘，印度洋上的伊甸園。',food:['咖哩魚','椰子麵包','海鮮'],spots:['拉迪格島','普拉蘭島','馬埃島','庫里厄斯島'],matsuri:['克里奧爾節']},
+ 45:{loc:'Soomaaliya',zh:'索馬里',en:'Somalia',fr:'Somalie',region:'東非',tagline:'非洲之角的海岸與沙漠，駱駝與乳香的國度。',food:['烤肉','駱駝奶','米飯'],spots:['摩加迪沙','哈豐角','拉馬迪'],matsuri:['索馬里文化節']},
+ 46:{loc:'South Sudan',zh:'南蘇丹',en:'South Sudan',fr:'Soudan du Sud',region:'東非',tagline:'白尼羅河的紙莎草沼澤，蒙達里部落與大遷徙之國。',food:['木薯','燉肉','高粱'],spots:['白尼羅河','博馬國家公園','朱巴'],matsuri:['蒙達里文化節']},
+ 47:{loc:'Tanzania',zh:'坦桑尼亞',en:'Tanzania',fr:'Tanzanie',region:'東非',tagline:'乞力馬扎羅與塞倫蓋蒂，桑給巴爾的石頭城。',food:['烏加利','尼亞馬','桑給巴爾比爾亞尼'],spots:['乞力馬扎羅山','塞倫蓋蒂','恩戈羅恩戈羅','桑給巴爾'],matsuri:['桑給巴爾音樂節']},
+ 48:{loc:'Uganda',zh:'烏干達',en:'Uganda',fr:'Ouganda',region:'東非',tagline:'尼羅河源頭與魯文佐里，山地大猩猩的第二故鄉。',food:['馬托克燉香蕉','羅勒燉菜','烤雞'],spots:['尼羅河源頭','魯文佐里山','姆布羅湖','坎帕拉'],matsuri:['尼羅河節']},
+ 49:{loc:'Zambia',zh:'贊比亞',en:'Zambia',fr:'Zambie',region:'東非',tagline:'維多利亞瀑布的贊比亞側，卡里巴湖與野生動物。',food:['恩西馬','燉菜','烤魚'],spots:['維多利亞瀑布','卡里巴湖','南盧安瓜','利文斯通'],matsuri:['庫翁貝節']},
+ 50:{loc:'Zimbabwe',zh:'津巴布韋',en:'Zimbabwe',fr:'Zimbabwe',region:'東非',tagline:'大津巴布韋石城與維多利亞瀑布，南部非洲的文明之鄉。',food:['薩紮','燉肉','烤魚'],spots:['大津巴布韋','維多利亞瀑布','馬納普爾斯','哈拉雷'],matsuri:['哈拉雷國際藝術節']},
+ 51:{loc:'Botswana',zh:'博茨瓦納',en:'Botswana',fr:'Botswana',region:'南非',tagline:'奧卡萬戈三角洲與喬貝，非洲最頂級的野生動物之地。',food:['塞斯瓦','烤羚羊肉','燉菜'],spots:['奧卡萬戈三角洲','喬貝國家公園','馬卡迪卡迪鹽沼'],matsuri:['馬伊瓦節']},
+ 52:{loc:'Eswatini',zh:'斯威士蘭',en:'Eswatini',fr:'Eswatini',region:'南非',tagline:'非洲最後的君主國，傳統草屋與蘆葦舞節。',food:['西瓦拉','燉肉','玉米粥'],spots:['埃祖爾維尼谷','姆拉拉尼瀑布','赫蘭皇家公園'],matsuri:['蘆葦舞節']},
+ 53:{loc:'Lesotho',zh:'萊索托',en:'Lesotho',fr:'Lesotho',region:'南非',tagline:'海拔最高的「天空之國」，巴索托騎手與馬洛蒂山。',food:['帕帕','燉羊肉','啤酒'],spots:['馬洛蒂山','塞蒙孔','采拉尼亞內'],matsuri:['莫里亞節']},
+ 54:{loc:'Namibia',zh:'納米比亞',en:'Namibia',fr:'Namibie',region:'南非',tagline:'納米布紅沙丘與死亡谷，沙海交界的最古老沙漠。',food:['烤羚羊肉','燉菜','德國香腸'],spots:['索蘇斯維萊','死亡谷','埃托沙國家公園','骷髏海岸'],matsuri:['溫得和克音樂節']},
+ 55:{loc:'South Africa',zh:'南非',en:'South Africa',fr:'Afrique du Sud',region:'南非',tagline:'桌山與好望角，葡萄酒莊與大草原，彩虹之國。',food:['布拉伊烤肉','波波提','葡萄酒','咖哩'],spots:['開普敦桌山','好望角','克魯格國家公園','花園大道'],matsuri:['開普敦嘉年華']},
+};
+
+/* 有世界遺產的國家（用於「世界遺產巡禮」） */
+const WH_COUNTRIES = [1,2,3,4,5,6,8,9,10,11,12,13,17,18,19,20,21,23,25,26,27,28,29,31,36,37,38,39,40,41,42,44,47,48,50,51,53,54,55];
+
+/* ============================================================
+   多語 i18n（繁體／簡體／English／Français）
+   ============================================================ */
+const LANG_KEY = 'af_lang';
+const LANGS = ['zh-Hant','zh-Hans','en','fr'];
+let LANG = (function(){ try{ const v = localStorage.getItem(LANG_KEY); return LANGS.includes(v) ? v : 'zh-Hant'; }catch(e){ return 'zh-Hant'; } })();
+const T2S = {"與":"与","遊":"游","縣":"县","點":"点","觀":"观","園":"园","島":"岛","溫":"温","館":"馆","場":"场","邊":"边","龍":"龙","飛":"飞","體":"体","發":"发","鬆":"松","曆":"历","歷":"历","經":"经","濟":"济","灣":"湾","機":"机","氣":"气","個":"个","麼":"么","們":"们","於":"于","裏":"里","裡":"里","麵":"面","當":"当","應":"应","據":"据","畫":"画","跡":"迹","遺":"遗","產":"产","烏":"乌","馬":"马","駱":"骆","駝":"驼","綠":"绿","縣市":"县市","記錄":"记录","紀錄":"纪录","層級":"层级","選":"选","類":"类","數":"数","誌":"志","靈":"灵","網":"网","線":"线","間":"间","開":"开","關":"关","書":"书","員":"员","長":"长","門":"门","問":"问","時":"时","間":"间","號":"号","場":"场","臺":"台","灣":"湾","萬":"万","億":"亿","學":"学","術":"术","構":"构","價":"价","準":"准","運":"运","動":"动","誌":"志","庫":"库","擋":"挡","樹":"树","葉":"叶","節":"节","慶":"庆","寶":"宝","貝":"贝","薩":"萨","贊":"赞","贊比亞":"赞比亚","剛果":"刚果","幾內亞":"几内亚","塞內加爾":"塞内加尔","塞拉利昂":"塞拉利昂","坦桑尼亞":"坦桑尼亚","肯尼亞":"肯尼亚","毛里求斯":"毛里求斯","毛里塔尼亞":"毛里塔尼亚","佛得角":"佛得角","布基納法索":"布基纳法索","津巴布韋":"津巴布韦","納米比亞":"纳米比亚","博茨瓦納":"博茨瓦纳","埃塞俄比亞":"埃塞俄比亚","厄立特里亞":"厄立特里亚","科特迪瓦":"科特迪瓦","索馬里":"索马里","阿爾及利亞":"阿尔及利亚","利比亞":"利比亚","突尼斯":"突尼斯","摩洛哥":"摩洛哥","蘇丹":"苏丹","多哥":"多哥","岡比亞":"冈比亚","安哥拉":"安哥拉","喀麥隆":"喀麦隆","加蓬":"加蓬","馬里":"马里","尼日爾":"尼日尔","尼日利亞":"尼日利亚","貝寧":"贝宁","加納":"加纳","幾內亞比紹":"几内亚比绍","利比里亞":"利比里亚","中非":"中非","乍得":"乍得","赤道幾內亞":"赤道几内亚","聖多美":"圣多美","布隆迪":"布隆迪","科摩羅":"科摩罗","吉布提":"吉布提","馬達加斯加":"马达加斯加","馬拉維":"马拉维","莫桑比克":"莫桑比克","盧旺達":"卢旺达","塞舌爾":"塞舌尔","南蘇丹":"南苏丹","烏干達":"乌干达","贊比亞":"赞比亚","斯威士蘭":"斯威士兰","萊索托":"莱索托","南非":"南非","西撒哈拉":"西撒哈拉"};
+function toSimplified(str){
+  let r = '';
+  for(const ch of str) r += T2S[ch] || ch;
+  return r;
+}
+const EN_PREF = {1:'Algeria',2:'Egypt',3:'Libya',4:'Morocco',5:'Sudan',6:'Tunisia',7:'Western Sahara',8:'Benin',9:'Burkina Faso',10:'Cabo Verde',11:'Ivory Coast',12:'Gambia',13:'Ghana',14:'Guinea',15:'Guinea-Bissau',16:'Liberia',17:'Mali',18:'Mauritania',19:'Niger',20:'Nigeria',21:'Senegal',22:'Sierra Leone',23:'Togo',24:'Angola',25:'Cameroon',26:'Central African Republic',27:'Chad',28:'Republic of the Congo',29:'DR Congo',30:'Equatorial Guinea',31:'Gabon',32:'São Tomé and Príncipe',33:'Burundi',34:'Comoros',35:'Djibouti',36:'Eritrea',37:'Ethiopia',38:'Kenya',39:'Madagascar',40:'Malawi',41:'Mauritius',42:'Mozambique',43:'Rwanda',44:'Seychelles',45:'Somalia',46:'South Sudan',47:'Tanzania',48:'Uganda',49:'Zambia',50:'Zimbabwe',51:'Botswana',52:'Eswatini',53:'Lesotho',54:'Namibia',55:'South Africa'};
+const FR_PREF = {1:'Algérie',2:'Égypte',3:'Libye',4:'Maroc',5:'Soudan',6:'Tunisie',7:'Sahara occidental',8:'Bénin',9:'Burkina Faso',10:'Cap-Vert',11:'Côte d’Ivoire',12:'Gambie',13:'Ghana',14:'Guinée',15:'Guinée-Bissau',16:'Liberia',17:'Mali',18:'Mauritanie',19:'Niger',20:'Nigeria',21:'Sénégal',22:'Sierra Leone',23:'Togo',24:'Angola',25:'Cameroun',26:'République centrafricaine',27:'Tchad',28:'Congo-Brazzaville',29:'Congo-Kinshasa',30:'Guinée équatoriale',31:'Gabon',32:'Sao Tomé-et-Principe',33:'Burundi',34:'Comores',35:'Djibouti',36:'Érythrée',37:'Éthiopie',38:'Kenya',39:'Madagascar',40:'Malawi',41:'Maurice',42:'Mozambique',43:'Rwanda',44:'Seychelles',45:'Somalie',46:'Soudan du Sud',47:'Tanzanie',48:'Ouganda',49:'Zambie',50:'Zimbabwe',51:'Botswana',52:'Eswatini',53:'Lesotho',54:'Namibie',55:'Afrique du Sud'};
+</script>

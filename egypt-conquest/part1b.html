@@ -1,0 +1,596 @@
+/* 成就對話框 */
+.ach-cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.ach-cat{
+  border:1px solid var(--line);background:#fff;border-radius:999px;
+  padding:6px 14px;font-size:13px;cursor:pointer;transition:all .15s;
+}
+.ach-cat.on{background:var(--vermilion);border-color:var(--vermilion);color:#fff;font-weight:700}
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px;max-height:46vh;overflow:auto;padding:2px}
+.ach-item{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);
+  padding:13px;position:relative;transition:all .15s;
+}
+.ach-item.got{border-color:var(--gold);background:linear-gradient(180deg,#FFFDF4,#FFF7DC)}
+.ach-item .ai-top{display:flex;align-items:center;gap:8px}
+.ach-item .ai-ic{font-size:21px}
+.ach-item .ai-name{font-weight:700;font-size:13.5px;flex:1}
+.ach-item .ai-pts{font-size:12.5px;font-weight:900;color:var(--vermilion);white-space:nowrap}
+.ach-item .ai-cond{font-size:12px;color:var(--ink-soft);margin-top:7px;line-height:1.5}
+.ach-item .ai-state{
+  position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--outline-variant);
+}
+.ach-item.got .ai-state{background:var(--gold);border-color:var(--gold)}
+.ach-item.got .ai-state::after{
+  content:'';position:absolute;left:4.5px;top:1.5px;width:5px;height:9px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);
+}
+.ach-item .ai-manual{margin-top:8px}
+.ach-summary{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;
+  font-size:13.5px;color:var(--ink-soft);
+}
+.ach-summary b{color:var(--vermilion)}
+
+/* 戰報 */
+.report-hero{
+  background:linear-gradient(160deg,#FFF1ED,#FFE7DF);
+  border:1px solid #F0C9C0;border-radius:var(--radius-lg);
+  padding:22px;text-align:center;margin-bottom:16px;
+}
+.report-hero .rh-level{font-size:15px;font-weight:700;color:var(--ink-soft)}
+.report-hero .rh-big{font-family:var(--serif);font-weight:900;font-size:34px;margin:6px 0 2px}
+.report-hero .rh-big .em{font-size:24px}
+.report-hero .rh-score{font-size:14px;color:var(--ink-soft)}
+.report-hero .rh-score b{font-family:var(--serif);font-size:22px;color:var(--vermilion)}
+.report-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+.report-stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;text-align:center}
+.report-stat .rs-num{font-family:var(--serif);font-weight:900;font-size:24px;color:var(--vermilion)}
+.report-stat .rs-lbl{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.report-text{
+  background:var(--paper-deep);border:1px solid var(--line);border-radius:var(--radius-md);
+  padding:14px;font-size:12.5px;white-space:pre-wrap;color:var(--ink-soft);
+  max-height:180px;overflow:auto;font-variant-numeric:tabular-nums;
+}
+.report-note{
+  margin-top:14px;font-size:12.5px;color:var(--ink-faint);
+  background:#FFF7E6;border:1px solid #F0E2B8;border-radius:var(--radius-md);
+  padding:10px 14px;line-height:1.6;
+}
+.report-danger{margin-top:14px;display:flex;justify-content:center}
+
+/* ============================================================
+   省份評分
+   ============================================================ */
+.pf-rate{display:flex;align-items:center;gap:10px;margin:2px 0 16px;flex-wrap:wrap}
+.rate-stars{display:flex;gap:3px}
+.rate-star{background:none;border:none;padding:1px;cursor:pointer;color:var(--line);font-size:23px;line-height:1;transition:color .15s,transform .1s}
+.rate-star.on{color:var(--gold)}
+.rate-star:hover{transform:scale(1.18)}
+.rate-star.locked{cursor:not-allowed;opacity:.6}
+.pf-rate .rate-note{font-size:12px;color:var(--ink-faint)}
+
+/* ============================================================
+   旅途照片
+   ============================================================ */
+.pf-photos{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.pf-photo{position:relative;width:84px;height:84px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.pf-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.pf-photo .pf-del{position:absolute;top:3px;right:3px;width:21px;height:21px;border-radius:50%;border:none;background:rgba(41,33,23,.68);color:#fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pf-add{width:84px;height:84px;border:1.5px dashed var(--line);border-radius:12px;background:rgba(255,255,255,.55);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--ink-faint);font-size:12px;font-family:var(--sans)}
+.pf-add svg{opacity:.7}
+.pf-add:hover{border-color:var(--vermilion);color:var(--vermilion)}
+.pf-photo-tag{font-size:12px;color:var(--ink-faint);font-weight:400;margin-left:8px}
+
+/* ============================================================
+   旅遊建議
+   ============================================================ */
+.sug-list{display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow:auto}
+.sug-card{border:1px solid var(--line);border-radius:var(--radius-md);padding:12px 14px;background:#fff;display:flex;gap:14px;align-items:center;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.sug-card:hover{border-color:#e0c7bb;box-shadow:var(--shadow-2)}
+.sug-card .sug-go{flex:none;font-size:12px;font-weight:700;color:var(--vermilion);opacity:.85;white-space:nowrap}
+.sug-card .sug-ja{font-family:var(--ar),var(--serif);font-weight:900;font-size:20px;color:var(--vermilion);min-width:46px}
+.sug-card .sug-body{flex:1}
+.sug-card .sug-name{font-weight:700;font-size:14.5px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.sug-card .sug-reason{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+.sug-card .sug-region{font-size:12px;color:var(--ink-faint);font-weight:400}
+.sug-empty{padding:28px;text-align:center;color:var(--ink-faint);font-size:14px}
+
+/* ============================================================
+   好友排行
+   ============================================================ */
+.fr-scroll{max-height:46vh;overflow:auto}
+.fr-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.fr-table th{text-align:left;font-size:12px;color:var(--ink-faint);font-weight:700;padding:6px 8px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+.fr-table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.fr-table tr.me td{background:#FFF1ED}
+.fr-rank{font-weight:900;font-family:var(--serif);color:var(--vermilion);min-width:18px}
+.local-maps{display:flex;flex-direction:column;gap:8px;margin-top:6px;max-height:220px;overflow-y:auto}
+.local-map{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:#fff;cursor:pointer;transition:border-color .15s;text-align:left;font-family:var(--sans)}
+.local-map:hover{border-color:var(--vermilion)}
+.local-map .lm-name{font-weight:700;font-size:14px;color:var(--ink)}
+.local-map .lm-code{font-size:12px;color:var(--ink-faint);letter-spacing:.05em}
+.local-map .lm-meta{margin-left:auto;font-size:12px;color:var(--ink-soft);white-space:nowrap}
+.local-map.active{border-color:var(--gold);background:#FFFDF4}
+.fr-table th[data-sort]{cursor:pointer;user-select:none;white-space:nowrap;transition:color .15s}
+.fr-table th[data-sort]:hover{color:var(--vermilion)}
+.fr-table th.fr-sort-on{color:var(--vermilion)}
+.fr-name{font-weight:700}
+.fr-name .fr-code{font-size:11px;color:var(--ink-faint);font-weight:400}
+.fr-pts{font-weight:900;color:var(--vermilion)}
+.fr-lv{font-size:12px;color:var(--ink-soft)}
+.fr-me-tag{display:inline-block;font-size:10.5px;background:var(--vermilion);color:#fff;border-radius:99px;padding:1px 8px;margin-left:6px;vertical-align:middle}
+.fr-hint{font-size:12px;color:var(--ink-faint);margin-top:12px;line-height:1.8}
+.fr-del{color:var(--ink-faint)}
+
+/* ============================================================
+   響應式
+   ============================================================ */
+@media (max-width:980px){
+  #view-map{grid-template-columns:1fr;grid-template-rows:auto 52vh auto;height:auto;min-height:calc(100vh - 64px);margin-top:64px}
+  .map-wrap{min-height:52vh}
+  .panel-wrap{border-left:none;border-top:1px solid var(--line)}
+  .brand-name{font-size:15px}
+  .score-pill .score-num{font-size:14px}
+}
+@media (max-width:768px){
+  .map-hint{display:none}
+}
+@media (max-width:520px){
+  .hero{padding-top:52px}
+  .ach-list,.ach-grid{grid-template-columns:1fr}
+  .type-options{grid-template-columns:1fr 1fr}
+  #appbar .score-pill{display:none}
+  mdui-dialog{padding:1rem}
+  .dlg-actions{gap:8px}
+  .ach-cats{gap:6px}
+  .ach-cat{padding:5px 11px;font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 頂部應用欄 ===== -->
+<mdui-top-app-bar id="appbar" class="hidden">
+  <div class="appbar-inner">
+    <div class="brand">
+      <span class="brand-flag"><span class="fg-eagle">🦅</span></span>
+      <span class="brand-name">埃及<b>制霸</b>地圖</span>
+    </div>
+    <div class="appbar-spacer"></div>
+    <div class="score-pill">等級 <span id="appLevel">—</span> <span class="score-num" id="appScore">0</span> 分</div>
+    <mdui-button-icon id="btnAch" data-i18n-title="成就" title="成就">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 6H4v1a3 3 0 0 0 3 3"/><path d="M17 6h3v1a3 3 0 0 1-3 3"/></svg>
+    </mdui-button-icon>
+    <mdui-button-icon id="btnWish" data-i18n-title="願望清單" title="願望清單">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>
+    </mdui-button-icon>
+    <mdui-button-icon id="btnReport" data-i18n-title="制霸戰報" title="制霸戰報">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+    </mdui-button-icon>
+    <mdui-button-icon id="btnLock" data-i18n-title="編輯鎖定" title="編輯鎖定">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </mdui-button-icon>
+    <mdui-button-icon id="btnHome" data-i18n-title="回首頁" title="回首頁">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+    </mdui-button-icon>
+  </div>
+</mdui-top-app-bar>
+
+<main>
+  <!-- ============================================================
+       首頁
+       ============================================================ -->
+  <div id="view-home">
+    <section class="hero dot-bg">
+      <div class="lang-switch" id="langSwitch">
+        <button data-lang="zh-Hant" class="active" title="繁體中文">繁</button>
+        <button data-lang="zh-Hans" title="简体中文">简</button>
+        <button data-lang="en" title="English">EN</button>
+        <button data-lang="ar" title="العربية">ع</button>
+      </div>
+      <div class="hero-flag"><span class="fg-eagle">🦅</span></div>
+      <h1>埃及<span class="jp">制霸</span>地圖</h1>
+      <p class="hero-sub">記錄你走過的每一寸埃及，看看你制霸了幾個省份？</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="num">27</div><div class="lbl">省份</div></div>
+        <div class="hero-stat"><div class="num">10</div><div class="lbl">等級</div></div>
+        <div class="hero-stat"><div class="num">∞</div><div class="lbl">回憶</div></div>
+      </div>
+      <div class="hero-cta">
+        <mdui-button id="btnCreate" variant="filled">
+          <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          建立我的地圖
+        </mdui-button>
+        <mdui-button id="btnLoad" variant="tonal">
+          <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          查看已有地圖
+        </mdui-button>
+      </div>
+      <div id="continueCard" class="continue-card hidden">
+        <div class="cc-info">
+          <div class="cc-title" id="ccName">—</div>
+          <div class="cc-meta" id="ccMeta">—</div>
+        </div>
+        <mdui-button id="btnContinue" variant="filled">進入地圖</mdui-button>
+        <mdui-button id="btnSwitch" variant="text">切換</mdui-button>
+      </div>
+    </section>
+
+    <section class="section" id="sec-how">
+      <div class="section-head">
+        <h2>操作說明</h2><span class="en">HOW IT WORKS</span>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body">
+          <div class="step-title">建立你的制霸地圖</div>
+          <div class="step-desc">填寫地圖名稱與編輯密碼（可留空），系統會產生一組專屬識別碼。純靜態版沒有雲端：識別碼與密碼都只存在這台裝置的瀏覽器裡，無法重設，建議截圖備份。</div>
+        </div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body">
+          <div class="step-title">點選省份，認識埃及</div>
+          <div class="step-desc">在地圖上點選省份，右側面板會顯示在地美食、景點與節慶介紹。</div>
+        </div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body">
+          <div class="step-title">記錄每一趟旅程</div>
+          <div class="step-desc">為每次造訪選擇「途經／遊玩／住宿／長居」，可填寫日期、評分與心得，並勾選在該省達成的特殊成就。</div>
+        </div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body">
+          <div class="step-title">累積分數、升級等級</div>
+          <div class="step-desc">造訪層級越高，得分越多；同省重複造訪、地區全制霸與特殊成就，都能帶來額外加分。</div>
+        </div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body">
+          <div class="step-title">分享制霸戰報</div>
+          <div class="step-desc">點擊頂欄的戰報按鈕，產生制霸戰報文字、匯出戰報圖片；也能匯出資料檔，帶到另一台裝置繼續記錄。</div>
+        </div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>計分說明</h2><span class="en">SCORING</span>
+      </div>
+      <div class="score-grid">
+        <div class="score-card"><div class="sc-type">途經 <span class="pts">+2<small> 分</small></span></div><div class="sc-desc">途經、轉乘</div></div>
+        <div class="score-card"><div class="sc-type">遊玩 <span class="pts">+5<small> 分</small></span></div><div class="sc-desc">觀光、一日遊</div></div>
+        <div class="score-card"><div class="sc-type">住宿 <span class="pts">+10<small> 分</small></span></div><div class="sc-desc">過夜住宿</div></div>
+        <div class="score-card"><div class="sc-type">長居 <span class="pts">+20<small> 分</small></span></div><div class="sc-desc">長期居住</div></div>
+        <div class="score-card"><div class="sc-type">重複造訪 <span class="pts">再+2<small> 分</small></span></div><div class="sc-desc">同一省份多次造訪</div></div>
+      </div>
+      <div class="score-foot">每個省份只要有一筆旅程就會計分，造訪層級越高、加分越多。該地區全部省份皆造訪可獲「地區制霸」加成，全數「住宿」以上再加成；特殊成就另行加分。同一省份計分以最高造訪層級為準。</div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>特殊成就</h2><span class="en">ACHIEVEMENTS</span>
+        <div class="appbar-spacer"></div>
+        <mdui-button id="btnAchTeaser" variant="text">查看全部成就</mdui-button>
+      </div>
+      <div class="ach-teaser">
+        <div class="ach-card"><div class="ic">🏜️</div><div class="ac-body"><div class="ac-name">金字塔奇觀</div><div class="ac-pts">+15 分 <span>· 吉薩金字塔</span></div></div></div>
+        <div class="ach-card"><div class="ic">🏛️</div><div class="ac-body"><div class="ac-name">神廟三傑</div><div class="ac-pts">+22 分 <span>· 卡納克・阿布辛貝・丹德拉</span></div></div></div>
+        <div class="ach-card"><div class="ic">🤿</div><div class="ac-body"><div class="ac-name">紅海潛水</div><div class="ac-pts">+20 分 <span>· 赫爾格達・沙姆沙伊赫</span></div></div></div>
+        <div class="ach-card"><div class="ic">🏆</div><div class="ac-body"><div class="ac-name">世界遺產巡禮</div><div class="ac-pts">+20 分 <span>· 埃及 7 處世界遺產</span></div></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>完整功能</h2><span class="en">FEATURES</span>
+      </div>
+      <div class="roadmap">
+        <div class="rm-card"><div class="rm-ic">⭐</div><h3>省份評分</h3><p>為每個省份加上你的主觀評價</p><mdui-button class="rm-btn" variant="tonal" data-go="map">進入地圖評分</mdui-button></div>
+        <div class="rm-card"><div class="rm-ic">💬</div><h3>旅遊建議</h3><p>依你的足跡推薦下一趟旅程</p><mdui-button id="btnSuggestTeaser" variant="tonal">查看建議</mdui-button></div>
+        <div class="rm-card"><div class="rm-ic">📷</div><h3>上傳照片</h3><p>把旅途照片掛到地圖上（僅存本機）</p><mdui-button class="rm-btn" variant="tonal" data-go="map">進入地圖上傳</mdui-button></div>
+        <div class="rm-card"><div class="rm-ic">🏆</div><h3>好友排行</h3><p>匯入好友資料檔，本機比拚制霸進度</p><mdui-button id="btnFriendsTeaser" variant="tonal">打開排行</mdui-button></div>
+      </div>
+    </section>
+
+    <footer style="max-width:1000px;margin:64px auto 0;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-faint);text-align:center;line-height:2">
+      埃及制霸地圖 · 純靜態版 — 所有資料僅存於本機瀏覽器（localStorage），不提供雲端儲存服務。<br>
+      省份邊界 © geoBoundaries（ODbL）· 地圖渲染 Leaflet · 介面 MDUI 2
+    </footer>
+  </div>
+
+  <!-- ============================================================
+       地圖視圖
+       ============================================================ -->
+  <div id="view-map" class="hidden">
+    <div id="levelStrip" class="hidden" style="grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:8px 16px;background:#fff;border-bottom:1px solid var(--line);cursor:pointer" data-i18n-title="查看制霸戰報" title="查看制霸戰報">
+      <span style="font-size:13px;font-weight:700;white-space:nowrap" id="lsLevel">—</span>
+      <mdui-linear-progress id="levelProgress" value="0" style="flex:1"></mdui-linear-progress>
+      <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap" id="lsNext">—</span>
+    </div>
+    <div class="map-wrap" id="mapWrap">
+      <div class="pref-search" id="prefSearchWrap">
+        <div class="ps-bar">
+          <button type="button" class="ps-toggle" id="psToggle" data-i18n-title="搜尋省份" title="搜尋省份" aria-label="搜尋省份">
+            <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          </button>
+          <input id="prefSearch" placeholder="搜尋省份（中文／阿拉伯文／英文／地區）" autocomplete="off" aria-label="搜尋省份">
+          <mdui-button-icon id="psClear" data-i18n-title="清除" title="清除" style="display:none">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </mdui-button-icon>
+        </div>
+        <div class="pref-search-drop hidden" id="prefSearchDrop"></div>
+      </div>
+      <div class="map-hint">點選省份查看介紹 · 滾輪縮放 / 拖曳移動</div>
+      <div id="map"></div>
+      <div class="map-legend">
+        <div class="lg-title">造訪層級</div>
+        <div class="lg-row"><span class="sw" style="background:#F0E7DF"></span>未造訪</div>
+        <div class="lg-row"><span class="sw" style="background:#F3CDBF"></span>途經 +2</div>
+        <div class="lg-row"><span class="sw" style="background:#E89376"></span>遊玩 +5</div>
+        <div class="lg-row"><span class="sw" style="background:#D2603F"></span>住宿 +10</div>
+        <div class="lg-row"><span class="sw" style="background:#B02A1A"></span>長居 +20</div>
+      </div>
+    </div>
+    <aside class="panel-wrap" id="panelWrap">
+      <div class="panel-empty" id="panelEmpty">
+        <svg viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div>點選地圖上的省份，<br>查看在地美食、景點與節慶，並記錄你的旅程。</div>
+        <mdui-button id="btnRandom" variant="tonal" style="margin-top:14px">
+          <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+          隨機探索
+        </mdui-button>
+      </div>
+      <div id="panelContent" class="hidden">
+        <div class="panel-head" id="panelHead">
+          <div class="ph-region"><mdui-chip id="pRegion" variant="assist">—</mdui-chip></div>
+          <h3><span id="pNameJa">—</span><span class="zh" id="pNameZh">—</span></h3>
+          <p class="panel-tagline" id="pTagline"></p>
+          <div class="panel-stats">
+            <div class="ps-pill">最佳層級 <b id="pBest">—</b></div>
+            <div class="ps-pill">本站得分 <b class="pts" id="pPts">0</b> 分</div>
+            <div class="ps-pill">紀錄 <b id="pCount">0</b> 筆</div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="p-section"><h4>在地美食</h4><div class="chip-row" id="pFood"></div></div>
+          <div class="p-section"><h4>名所景點</h4><div class="chip-row" id="pSpots"></div></div>
+          <div class="p-section"><h4>節慶行事</h4><div class="chip-row" id="pMatsuri"></div></div>
+          <div class="p-section">
+            <h4>省份評分 <mdui-button id="btnWishToggle" variant="tonal" size="small" style="margin-left:8px">☆ 想去</mdui-button></h4>
+            <div class="pf-rate">
+              <div class="rate-stars" id="rateStars"></div>
+              <span class="rate-note" id="rateNote"></span>
+            </div>
+          </div>
+          <div class="p-section">
+            <h4>旅途照片 <span class="pf-photo-tag">僅存本機 · 不隨資料檔匯出</span></h4>
+            <div class="pf-photos" id="pfPhotos"></div>
+            <input type="file" id="photoInput" accept="image/*" class="hidden">
+          </div>
+          <div class="p-section"><h4>旅程紀錄 <button type="button" class="clear-pref-btn" id="btnClearPref">清除此省</button></h4><div id="pRecords"></div></div>
+        </div>
+        <div class="panel-footer">
+          <div class="pf-lock hidden" id="pLockHint">已鎖定編輯 — 點擊頂欄鎖頭解鎖後才能記錄旅程</div>
+          <mdui-button id="btnAddRecord" variant="filled" style="width:100%">
+            <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            新增旅程
+          </mdui-button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<!-- ===== 對話框：建立地圖 ===== -->
+<mdui-dialog id="dlgCreate" style="--dlg-w:420px">
+  <div class="dlg">
+    <h3>建立我的制霸地圖</h3>
+    <div class="dlg-sub">為地圖命名並設定編輯密碼（可留空），系統會產生一組專屬識別碼。</div>
+    <div class="dlg-field">
+      <mdui-text-field id="cfName" variant="outlined" label="地圖名稱" maxlength="20" required style="width:100%"></mdui-text-field>
+      <div class="fl-hint">例：我的尼羅河之旅、開羅社畜的週末</div>
+    </div>
+    <div class="dlg-field">
+      <mdui-text-field id="cfPass" variant="outlined" type="password" label="編輯密碼（可留空）" style="width:100%"></mdui-text-field>
+    </div>
+    <div class="dlg-field">
+      <mdui-text-field id="cfPass2" variant="outlined" type="password" label="再次輸入密碼" style="width:100%"></mdui-text-field>
+    </div>
+    <div class="dlg-actions">
+      <mdui-button id="cfCancel" variant="text">取消</mdui-button>
+      <mdui-button id="cfSubmit" variant="filled">建立地圖</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 對話框：載入地圖 ===== -->
+<mdui-dialog id="dlgLoad" style="--dlg-w:420px">
+  <div class="dlg">
+    <h3>查看已有地圖</h3>
+    <div class="dlg-sub">輸入識別碼開啟這台裝置上已建立的地圖。</div>
+    <div class="dlg-field">
+      <mdui-text-field id="lfCode" variant="outlined" label="識別碼　例：EGY-A3K9" style="width:100%"></mdui-text-field>
+      <div class="fl-hint">純靜態版沒有雲端伺服器：識別碼無法跨裝置讀取資料，只在本機生效。</div>
+    </div>
+    <div class="dlg-field">
+      <div class="fl-hint">本機已建立的地圖（點選即開啟）：</div>
+      <div id="localMaps" class="local-maps"></div>
+    </div>
+    <div class="dlg-field">
+      <mdui-button id="lfImport" variant="tonal" style="width:100%">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+        從資料檔匯入
+      </mdui-button>
+      <input type="file" id="importFile" accept="application/json,.json" class="hidden">
+    </div>
+    <div class="dlg-actions">
+      <mdui-button id="lfCancel" variant="text">取消</mdui-button>
+      <mdui-button id="lfSubmit" variant="filled">開啟地圖</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 對話框：解鎖 ===== -->
+<mdui-dialog id="dlgUnlock" style="--dlg-w:400px">
+  <div class="dlg">
+    <h3>解鎖編輯</h3>
+    <div class="dlg-sub">輸入這張地圖的編輯密碼以解鎖編輯功能。</div>
+    <div class="dlg-field">
+      <mdui-text-field id="ufPass" variant="outlined" type="password" label="編輯密碼" style="width:100%"></mdui-text-field>
+    </div>
+    <div class="dlg-actions">
+      <mdui-button id="ufCancel" variant="text">取消</mdui-button>
+      <mdui-button id="ufSubmit" variant="filled">解鎖</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 對話框：新增旅程 ===== -->
+<mdui-dialog id="dlgRecord" style="--dlg-w:520px">
+  <div class="dlg">
+    <h3>記錄旅程</h3>
+    <div class="dlg-sub" id="recTitle">—</div>
+    <div class="dlg-field">
+      <span class="fl-label">造訪層級 <span class="req">*</span></span>
+      <mdui-radio-group id="recType" value="2">
+        <mdui-radio value="1">途經 +2</mdui-radio>
+        <mdui-radio value="2">遊玩 +5</mdui-radio>
+        <mdui-radio value="3">住宿 +10</mdui-radio>
+        <mdui-radio value="4">長居 +20</mdui-radio>
+      </mdui-radio-group>
+    </div>
+    <div class="dlg-field" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <span class="fl-label">日期</span>
+        <mdui-text-field id="recDate" variant="outlined" type="date" style="width:100%"></mdui-text-field>
+      </div>
+      <div>
+        <span class="fl-label">評分</span>
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 2px">
+          <mdui-slider id="recRating" min="0" max="5" step="1" value="4" style="flex:1"></mdui-slider>
+          <span style="font-weight:900;font-family:var(--serif);color:var(--gold);min-width:38px;text-align:center" id="recRatingVal">★★★★★</span>
+        </div>
+      </div>
+    </div>
+    <div class="dlg-field">
+      <span class="fl-label">心得</span>
+      <mdui-text-field id="recNote" variant="outlined" label="寫點什麼吧…" rows="3" maxlength="300" style="width:100%"></mdui-text-field>
+    </div>
+    <div class="dlg-field hidden" id="recAchField">
+      <span class="fl-label">在這一省達成的成就</span>
+      <div class="ach-list" id="recAch"></div>
+    </div>
+    <div class="dlg-actions">
+      <mdui-button id="recCancel" variant="text">取消</mdui-button>
+      <mdui-button id="recSubmit" variant="filled">儲存旅程</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 對話框：願望清單 ===== -->
+<mdui-dialog id="dlgWish" style="--dlg-w:640px">
+  <div class="dlg">
+    <h3>願望清單</h3>
+    <div class="dlg-sub">把想去的省份收進清單，或回顧你的旅程足跡。</div>
+    <div class="wish-tabs">
+      <button type="button" class="wish-tab active" id="wtWish">想去 <span class="wtab-n" id="wtWishN">0</span></button>
+      <button type="button" class="wish-tab" id="wtTl">旅程時間線</button>
+    </div>
+    <div id="wishBody"></div>
+    <div class="dlg-actions">
+      <mdui-button id="wishClose" variant="text">關閉</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 對話框：成就 ===== -->
+<mdui-dialog id="dlgAch" style="--dlg-w:760px">
+  <div class="dlg">
+    <h3>特殊成就</h3>
+    <div class="dlg-sub">達成條件後自動解鎖；標記「手動」的成就需自行勾選。點擊成就卡片可查看條件。</div>
+    <div class="ach-summary" id="achSummary"></div>
+    <div class="ach-cats" id="achCats"></div>
+    <div class="ach-grid" id="achGrid"></div>
+    <div class="dlg-actions">
+      <mdui-button id="achClose" variant="text">關閉</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 對話框：制霸戰報 ===== -->
+<mdui-dialog id="dlgReport" style="--dlg-w:640px">
+  <div class="dlg">
+    <h3>制霸戰報</h3>
+    <div class="dlg-sub">你的埃及制霸進度總覽，可複製文字、匯出圖片或匯出資料檔。</div>
+    <div id="reportBody"></div>
+    <div class="dlg-actions">
+      <mdui-button id="rpCopy" variant="tonal">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        複製戰報
+      </mdui-button>
+      <mdui-button id="rpImg" variant="tonal">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        匯出圖片
+      </mdui-button>
+      <mdui-button id="rpExport" variant="tonal">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+        匯出資料檔
+      </mdui-button>
+      <div class="grow"></div>
+      <mdui-button id="rpCode" variant="text">複製識別碼</mdui-button>
+      <mdui-button id="rpDelete" variant="text" style="color:var(--mdui-color-error)">刪除這張地圖</mdui-button>
+      <mdui-button id="rpClose" variant="filled">關閉</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 對話框：旅遊建議 ===== -->
+<mdui-dialog id="dlgSuggest" style="--dlg-w:560px">
+  <div class="dlg">
+    <h3>旅遊建議</h3>
+    <div class="dlg-sub">依你的足跡與未完成的成就，推薦下一站。</div>
+    <div class="sug-list" id="sugList"></div>
+    <div class="dlg-actions">
+      <mdui-button id="sugClose" variant="text">關閉</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 對話框：好友排行 ===== -->
+<mdui-dialog id="dlgFriends" style="--dlg-w:760px">
+  <div class="dlg">
+    <h3>好友排行</h3>
+    <div class="dlg-sub">純靜態版沒有雲端：請好友「匯出資料檔」傳給你，再匯入比拚 — 排行只在你自己的瀏覽器裡計算。</div>
+    <div class="fr-scroll" id="frScroll"></div>
+    <div class="dlg-actions">
+      <mdui-button id="frImport" variant="tonal">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+        匯入好友資料檔
+      </mdui-button>
+      <input type="file" id="friendImport" accept="application/json,.json" class="hidden">
+      <div class="grow"></div>
+      <mdui-button id="frClose" variant="filled">關閉</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 對話框：照片大圖 ===== -->
+<mdui-dialog id="dlgPhoto" style="--dlg-w:720px">
+  <div class="dlg" id="photoBigWrap"></div>
+  <div class="dlg-actions">
+    <mdui-button id="photoClose" variant="text">關閉</mdui-button>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 對話框：確認 ===== -->
+<mdui-dialog id="dlgConfirm" style="--dlg-w:400px">
+  <div class="dlg">
+    <h3 id="confirmTitle">確定？</h3>
+    <div class="dlg-sub" id="confirmDesc"></div>
+    <div class="dlg-actions">
+      <mdui-button id="btnConfirmNo" variant="text">取消</mdui-button>
+      <mdui-button id="btnConfirmOk" variant="filled">確定</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mdui@2.1.2/mdui.global.js"></script>
+<script>window.EGYPT_GEOJSON=__GEOJSON__;</script>
+<script>

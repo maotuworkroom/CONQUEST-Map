@@ -1,0 +1,707 @@
+<script>
+/* ============================================================
+   本地儲存（與日本版一致：localStorage，純靜態）
+   ============================================================ */
+const LS = (()=>{ try{ const t='__t'; localStorage.setItem(t,'1'); localStorage.removeItem(t); return localStorage; }catch(e){ return null; } })();
+const LS_ACTIVE = 'afActive';
+const LS_REG = 'afReg';
+const LS_DATA = 'afData.';
+const LS_FRIENDS = 'afFriends';
+function lsGet(k, dflt){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : dflt; }catch(e){ return dflt; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ mdui.snackbar('儲存失敗：瀏覽器儲存空間可能已滿'); } }
+function registry(){ return lsGet(LS_REG, {}); }
+function dataOf(code){ return code ? lsGet(LS_DATA+code, null) : null; }
+function saveData(d){ lsSet(LS_DATA+d.code, d); const r = registry(); r[d.code] = {name:d.name, passHash:d.passHash, createdAt:d.createdAt}; lsSet(LS_REG, r); }
+function deleteData(code){ try{ localStorage.removeItem(LS_DATA+code); }catch(e){} const r = registry(); delete r[code]; lsSet(LS_REG, r); }
+function hashStr(s){ let h = 5381; for(let i=0;i<s.length;i++){ h = ((h<<5)+h+s.charCodeAt(i))|0; } return String(h>>>0); }
+function genCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c;
+  do{
+    c = 'AFR-';
+    for(let i=0;i<4;i++) c += chars[Math.floor(Math.random()*chars.length)];
+  }while(registry()[c]);
+  return c;
+}
+function friendsOf(){ return lsGet(LS_FRIENDS, {}); }
+function saveFriends(f){ lsSet(LS_FRIENDS, f); }
+
+/* ============================================================
+   計分引擎（與日本版完全一致：最佳層級計分＋重複加成＋地區制霸＋成就）
+   ============================================================ */
+function computeScore(data){
+  const best = {};           // 每國最佳層級
+  const base = {};           // 每國基礎分
+  const repeat = {};         // 每國重複加成
+  const records = data.records || {};
+  for(let id=1; id<=55; id++){
+    const list = records[id] || [];
+    let b = 0;
+    for(const rec of list){ if(rec.type > b) b = rec.type; }
+    best[id] = b;
+    base[id] = b ? TYPE_PTS[b] : 0;
+    repeat[id] = list.length > 1 ? Math.min(list.length-1, 5) * 2 : 0;
+  }
+  // 地區制霸
+  let regionBonus = 0, regionsDone = 0;
+  for(const key in REGIONS){
+    const ids = REGIONS[key].ids;
+    const allVisited = ids.every(i => best[i] >= 1);
+    const allStay = ids.every(i => best[i] >= 3);
+    if(allStay){ regionBonus += 15; regionsDone++; }
+    else if(allVisited){ regionBonus += 10; regionsDone++; }
+  }
+  // 成就
+  const earned = {};
+  let achPoints = 0;
+  const manual = data.manualAch || [];
+  for(const a of ACH){
+    let ok = false;
+    if(a.kind === 'groups'){
+      ok = a.groups[0].every(id => best[id] >= a.groups[1]);
+    }else if(a.kind === 'count'){
+      const cnt = a.prefs.filter(id => best[id] >= a.level).length;
+      ok = cnt >= a.n;
+    }else if(a.kind === 'manual'){
+      const cond = a.prefs.every(id => best[id] >= a.level);
+      ok = cond && manual.includes(a.id);
+    }
+    if(ok){ earned[a.id] = true; achPoints += a.pts; }
+  }
+  const prefTotal = Object.values(base).reduce((s,v)=>s+v,0) + Object.values(repeat).reduce((s,v)=>s+v,0);
+  const total = prefTotal + regionBonus + achPoints;
+  // 等級
+  let level = 0;
+  for(let i=0;i<LEVELS.length;i++){ if(total >= LEVELS[i].pts) level = i; }
+  const visited = Object.keys(best).filter(id => best[id] >= 1).length;
+  return {best, base, repeat, regionBonus, regionsDone, earned, achPoints, total, level, visited, records};
+}
+
+/* ============================================================
+   工具
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const today = () => { const d = new Date(); const p = n => String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); };
+function snack(msg){ try{ mdui.snackbar({message: msg}); }catch(e){} }
+let confirmCb = null;
+function askConfirm(title, desc, cb){
+  $('confirmTitle').textContent = t(title);
+  $('confirmDesc').textContent = t(desc);
+  confirmCb = cb;
+  openDlg('dlgConfirm');
+}
+function openDlg(id){ $(id).open = true; }
+function closeDlg(id){ $(id).open = false; }
+function chipEl(text){
+  const c = document.createElement('mdui-chip');
+  c.setAttribute('variant','assist');
+  c.textContent = text;
+  return c;
+}
+function lightenFill(hex, amt){
+  amt = amt || 0.38;
+  const n = parseInt(hex.slice(1), 16);
+  const r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  return 'rgb(' + Math.round(r + (252-r)*amt) + ',' + Math.round(g + (248-g)*amt) + ',' + Math.round(b + (243-b)*amt) + ')';
+}
+
+/* ============================================================
+   全域狀態
+   ============================================================ */
+let curCode = null;
+let curData = null;
+let curScore = null;
+let selectedId = null;
+let locked = false;
+const MAX_PHOTOS = 3;
+
+/* ============================================================
+   地圖（Leaflet + 內嵌非洲 GeoJSON）
+   ============================================================ */
+let map = null;
+let geoLayer = null;
+let labelLayer = null;
+const FILLS = {0:'#F0E6D8', 1:'#F2D2A8', 2:'#E6A85C', 3:'#C97B3F', 4:'#A63D2F'};
+const layers = {};   // id -> {l, tiny, major}
+
+function styleFor(id, sel){
+  const lv = curScore ? curScore.best[id] : 0;
+  const wish = curData && curData.wishlist && curData.wishlist.includes(id);
+  const f = FILLS[lv] || FILLS[0];
+  return {
+    color: sel ? '#C9932A' : '#FFFFFF',
+    weight: sel ? 2.6 : 1.1,
+    fillColor: f, fillOpacity: 1, opacity: 1,
+    dashArray: wish ? '4 3' : null,
+  };
+}
+function initMapIfNeeded(){
+  if(map) return;
+  if(!window.AFRICA_GEOJSON) return;
+  map = L.map('map', {
+    zoomControl:false, attributionControl:true,
+    minZoom:3.4, maxZoom:9, zoomSnap:0.5, wheelPxPerZoomLevel:90
+  });
+  map.attributionControl.setPrefix(false);
+  map.attributionControl.addAttribution('境界 © <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> · Leaflet');
+  // 先给初始视野让 map 进入 loaded 状态，避免图层在 whenReady 队列中延迟加入
+  // 导致 SVG renderer bounds 未就绪而抛错；后续 fitMapView 会再精确 fit。
+  map.setView([4.5, 18.5], 3.4);
+  geoLayer = L.geoJSON(window.AFRICA_GEOJSON, {
+    style: f => styleFor(f.properties.id, f.properties.id === selectedId),
+    onEachFeature: (f, layer) => {
+      const id = f.properties.id;
+      layers[id] = {l: layer, tiny: false, major: false};
+      layer.on('click', () => selectPref(id));
+      layer.on('mouseover', (e) => {
+        const lv = curScore ? curScore.best[id] : 0;
+        layer.setStyle({ weight: 1.9, fillColor: lightenFill(FILLS[lv] || FILLS[0]) });
+        layer.bringToFront();
+        if(layer._hoverTip) map.removeLayer(layer._hoverTip);
+        const tip = L.tooltip({
+          direction: 'top', offset: [0, -8], className: 'pref-hover-tip',
+          opacity: 0.97, interactive: false
+        });
+        const p = COUNTRIES[id];
+        tip.setLatLng(e.latlng).setContent(
+          (LANG==='zh-Hant' ? p.loc : (LANG==='en' ? EN_PREF[id] : (LANG==='fr' ? FR_PREF[id] : p.loc))) +
+          ' · ' + (lv >= 1 ? t(TYPE_NAME[lv]) : t('未造訪'))
+        ).addTo(map);
+        layer._hoverTip = tip;
+      });
+      layer.on('mousemove', (e) => { if(layer._hoverTip) layer._hoverTip.setLatLng(e.latlng); });
+      layer.on('mouseout', () => {
+        layer.setStyle(styleFor(id, id === selectedId));
+        if(layer._hoverTip){ map.removeLayer(layer._hoverTip); layer._hoverTip = null; }
+      });
+    }
+  }).addTo(map);
+
+  // 微型島國補上隱形點位，方便點選；同時計算「大國」供低縮放顯示名稱
+  geoLayer.eachLayer(l => {
+    const id = l.feature.properties.id;
+    const b = l.getBounds();
+    const w = b.getEast() - b.getWest(), h = b.getNorth() - b.getSouth();
+    if(!layers[id]) layers[id] = {l, tiny:false, major:false};
+    layers[id].major = (w * h >= 90) || w >= 16 || h >= 16;
+    if(w < 5 && h < 5){
+      const c = L.circleMarker(b.getCenter(), {
+        radius: 15, stroke: false, fillColor: '#000', fillOpacity: 0, interactive: true
+      }).addTo(map);
+      layers[id].tiny = true;
+      layers[id].tip = c;
+      c.on('click', () => selectPref(id));
+    }
+  });
+
+  // 國名標籤（永久 tooltip，縮放 5.5 以上才顯示）
+  labelLayer = L.layerGroup().addTo(map);
+  const labelTips = [];
+  geoLayer.eachLayer(l => {
+    const id = l.feature.properties.id;
+    const tip = L.tooltip({
+      permanent:true, direction:'center', className:'pref-label',
+      interactive:false, opacity:0.95
+    })
+      .setLatLng(l.getBounds().getCenter())
+      .setContent(LANG==='zh-Hant' ? COUNTRIES[id].zh : (LANG==='zh-Hans' ? toSimplified(COUNTRIES[id].zh) : (LANG==='en' ? EN_PREF[id] : FR_PREF[id])));
+    tip.addTo(labelLayer);
+    labelTips.push({id, tip});
+  });
+  const toggleLabels = () => {
+    if(!map) return;
+    const z = map.getZoom();
+    labelTips.forEach(({id, tip}) => {
+      const rec = layers[id] || {};
+      const on = z >= 5.5 && (z >= 7 || rec.major);
+      if(on && !map.hasLayer(tip)) map.addLayer(tip);
+      if(!on && map.hasLayer(tip)) map.removeLayer(tip);
+    });
+  };
+  map.on('zoomend', toggleLabels);
+  setTimeout(fitMapView, 120);
+  toggleLabels();
+}
+function renderMapColors(){
+  if(!geoLayer) return;
+  geoLayer.eachLayer(l => l.setStyle(styleFor(l.feature.properties.id, l.feature.properties.id === selectedId)));
+}
+function fitMapView(){
+  if(!map || !geoLayer) return;
+  map.invalidateSize();
+  map.fitBounds(geoLayer.getBounds(), {padding:[26,26]});
+}
+function selectPref(id){
+  selectedId = id;
+  renderMapColors();
+  renderPanel(id);
+  if(map){
+    const l = geoLayer.getLayer(id) || geoLayer.getLayers().find(x => x.feature && x.feature.properties.id === id);
+    if(l){
+      const b = l.getBounds();
+      if(!map.getBounds().contains(b)) map.panInsideBounds(b, {padding:[40,40]});
+    }
+  }
+}
+function flyToCountry(id){
+  const f = geoLayer.getLayers().find(x => x.feature && x.feature.properties.id === id);
+  if(f && map) map.flyToBounds(f.getBounds(), { padding: [30, 30], maxZoom: 8, duration: 0.7 });
+}
+
+/* ============================================================
+   面板
+   ============================================================ */
+function renderPanel(id){
+  const p = COUNTRIES[id];
+  if(!p) return;
+  const list = curData.records[id] || [];
+  const s = curScore;
+  $('panelEmpty').classList.add('hidden');
+  $('panelContent').classList.remove('hidden');
+  $('pRegion').textContent = t(REGIONS[p.region].name);
+  $('pNameJa').textContent = LANG === 'zh-Hant' ? p.loc : (LANG === 'en' ? EN_PREF[id] : (LANG === 'fr' ? FR_PREF[id] : p.loc));
+  $('pNameZh').textContent = prefName(id);
+  $('pTagline').textContent = t(p.tagline);
+  $('btnWishToggle').textContent = (curData.wishlist || []).indexOf(id) !== -1 ? t('★ 已想去') : t('☆ 想去');
+  const img = 'assets/prefs/' + String(id).padStart(2,'0') + '_' + (['dza','egy','lby','mar','sdn','tun','esh','ben','bfa','cpv','civ','gmb','gha','gin','gnb','lbr','mli','mrt','ner','nga','sen','sle','tgo','ago','cmr','caf','tcd','cog','cod','gnq','gab','stp','bdi','com','dji','eri','eth','ken','mdg','mwi','mus','moz','rwa','syc','som','ssd','tza','uga','zmb','zwe','bwa','swz','lso','nam','zaf'][id-1]) + '.jpg';
+  const head = $('panelHead');
+  head.classList.add('has-photo');
+  head.style.backgroundImage = 'linear-gradient(180deg, rgba(30,20,12,.20), rgba(30,20,12,.03) 34%, rgba(250,246,238,0) 52%), url("' + img + '")';
+  const b = s.best[id];
+  $('pBest').textContent = b ? t(TYPE_NAME[b]) : t('未造訪');
+  $('pPts').textContent = s.base[id] + s.repeat[id];
+  $('pCount').textContent = list.length;
+  const fillChips = (elId, arr) => {
+    const wrap = $(elId); wrap.innerHTML = '';
+    arr.forEach(x => wrap.appendChild(chipEl(t(x))));
+  };
+  fillChips('pFood', p.food);
+  fillChips('pSpots', p.spots);
+  fillChips('pMatsuri', p.matsuri);
+  renderRecords(id);
+  renderRating(id);
+  renderPhotos(id);
+  refreshClearBtn();
+  $('pLockHint').classList.toggle('hidden', !locked);
+}
+function refreshClearBtn(){
+  const btn = $('btnClearPref');
+  if(!curData || selectedId == null){ btn.disabled = true; return; }
+  const has = (curData.records[selectedId] || []).length || (curData.ratings || {})[selectedId] || (curData.photos || {})[selectedId];
+  btn.disabled = !has;
+}
+function renderRecords(id){
+  const wrap = $('pRecords');
+  const list = curData.records[id] || [];
+  wrap.innerHTML = '';
+  if(!list.length){
+    wrap.innerHTML = '<div class="record-empty">' + t('還沒記錄這座國家 — 按下方的「新增旅程」開始吧。') + '</div>';
+    return;
+  }
+  const sorted = list.map((rec, i) => ({rec, i})).sort((a, b) => (b.rec.date || '').localeCompare(a.rec.date || ''));
+  sorted.forEach(({rec, i}) => {
+    const row = document.createElement('div');
+    row.className = 'record-row';
+    const stars = rec.rating > 0 ? '★'.repeat(rec.rating) + '☆'.repeat(5 - rec.rating) : '—';
+    row.innerHTML =
+      '<div class="rr-top">' +
+        '<span class="rr-type" style="background:' + TYPE_COLOR[rec.type] + '">' + t(TYPE_NAME[rec.type]) + '</span>' +
+        '<span class="rr-date">' + (rec.date || t('未填日期')) + '</span>' +
+        '<span class="rr-stars">' + stars + '</span>' +
+      '</div>' +
+      (rec.note ? '<div class="rr-note">' + esc(rec.note) + '</div>' : '') +
+      (locked ? '' : '<mdui-button class="rr-del" variant="text" data-del="' + i + '"><svg slot="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></mdui-button>');
+    const delBtn = row.querySelector('[data-del]');
+    if(delBtn) delBtn.addEventListener('click', e => { e.stopPropagation(); confirmDeleteRecord(id, i); });
+    row.addEventListener('click', e => {
+      if(e.target.closest('mdui-button') || e.target.closest('.rr-del')) return;
+      if(locked){ openUnlock(); return; }
+      openRecordDialog(id, i);
+    });
+    wrap.appendChild(row);
+  });
+}
+function confirmDeleteRecord(id, idx){
+  askConfirm(t('刪除這筆旅程？'), t('「') + t(COUNTRIES[id].zh) + t('」的第 ') + (idx+1) + t(' 筆紀錄將被移除，無法復原。'), () => {
+    curData.records[id].splice(idx, 1);
+    saveData(curData);
+    renderAll();
+    snack(t('已刪除紀錄'));
+  });
+}
+function renderRating(id){
+  const wrap = $('rateStars');
+  wrap.innerHTML = '';
+  const v = (curData.ratings || {})[id] || 0;
+  for(let i=1;i<=5;i++){
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'rate-star' + (i <= v ? ' on' : '') + (locked ? ' locked' : '');
+    b.textContent = '★';
+    b.title = i + t(' 星');
+    b.addEventListener('click', () => {
+      if(locked){ openUnlock(); return; }
+      const ratings = curData.ratings || (curData.ratings = {});
+      if(ratings[id] === i){ delete ratings[id]; }else{ ratings[id] = i; }
+      saveData(curData);
+      renderRating(id);
+      const nv = ratings[id] || 0;
+      $('rateNote').textContent = nv ? t('你的評價 ') + nv + t(' 星') : t('點星星給這座國家打分');
+      snack(ratings[id] ? t(COUNTRIES[id].zh) + t(' 評為 ') + ratings[id] + t(' 星') : t('已移除評價'));
+    });
+    wrap.appendChild(b);
+  }
+  $('rateNote').textContent = v ? t('你的評價 ') + v + t(' 星') : t('點星星給這座國家打分');
+}
+function renderPhotos(id){
+  const wrap = $('pfPhotos');
+  wrap.innerHTML = '';
+  const list = (curData.photos || {})[id] || [];
+  list.forEach((src, i) => {
+    const d = document.createElement('div');
+    d.className = 'pf-photo';
+    d.innerHTML = '<img alt="' + t('旅途照片') + '" src="' + src + '"><button class="pf-del" title="' + t('刪除照片') + '">✕</button>';
+    d.querySelector('img').addEventListener('click', () => {
+      openDlg('dlgPhoto');
+      $('photoBigWrap').innerHTML = '<img alt="' + t('旅途照片') + '" src="' + src + '"><div class="pb-cap">' + t(COUNTRIES[id].zh) + ' · ' + t('照片 ') + (i + 1) + ' / ' + list.length + '</div>';
+    });
+    d.querySelector('.pf-del').addEventListener('click', () => {
+      if(locked){ openUnlock(); return; }
+      const photos = curData.photos || (curData.photos = {});
+      photos[id].splice(i, 1);
+      if(!photos[id].length) delete photos[id];
+      saveData(curData);
+      renderPhotos(id);
+      snack(t('已刪除照片'));
+    });
+    wrap.appendChild(d);
+  });
+  if(list.length < MAX_PHOTOS){
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'pf-add';
+    add.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>' + t('上傳');
+    add.addEventListener('click', () => {
+      if(locked){ openUnlock(); return; }
+      $('photoInput').click();
+    });
+    wrap.appendChild(add);
+  }
+}
+
+/* ============================================================
+   旅程對話框
+   ============================================================ */
+let recEditIdx = null;
+function updateRatingLabel(v){
+  $('recRatingVal').textContent = v > 0 ? '★'.repeat(v) + '☆'.repeat(5 - v) : '—';
+}
+function openRecordDialog(id, idx){
+  if(id == null){ snack(t('先點選一個國家')); return; }
+  const p = COUNTRIES[id];
+  recEditIdx = (idx == null || idx < 0) ? null : idx;
+  const editing = recEditIdx != null;
+  const pName = LANG==='zh-Hant' ? p.loc + t(p.zh) : (LANG==='en' ? EN_PREF[id] + ' · ' + t(p.zh) : (LANG==='fr' ? FR_PREF[id] + ' · ' + t(p.zh) : p.loc + t(p.zh)));
+  $('recTitle').textContent = (editing ? t('編輯旅程 · ') : t('新增旅程 · ')) + '『' + pName + '』 · ' + t(REGIONS[p.region].name);
+  const oldRec = editing ? (curData.records[id] || [])[idx] : null;
+  $('recDate').value = oldRec ? oldRec.date || today() : today();
+  $('recNote').value = oldRec ? oldRec.note || '' : '';
+  $('recRating').value = oldRec ? (oldRec.rating || 4) : 4;
+  updateRatingLabel(oldRec ? (oldRec.rating || 4) : 4);
+  $('recType').value = oldRec ? String(oldRec.type || 2) : '2';
+  document.querySelectorAll('.type-opt').forEach(o => o.classList.toggle('on', o.dataset.t === String(oldRec ? (oldRec.type || 2) : 2)));
+  // 手動成就（適用於該國）
+  const manualAch = ACH.filter(a => a.kind === 'manual' && a.prefs.includes(id));
+  const field = $('recAchField'), wrap = $('recAch');
+  if(manualAch.length){
+    field.classList.remove('hidden');
+    wrap.innerHTML = '';
+    manualAch.forEach(a => {
+      const label = document.createElement('label');
+      label.className = 'ach-check';
+      const cb = document.createElement('mdui-checkbox');
+      cb.value = a.id;
+      cb.checked = curData.manualAch.includes(a.id);
+      cb.addEventListener('change', () => {
+        if(cb.checked){
+          if(!curData.manualAch.includes(a.id)) curData.manualAch.push(a.id);
+        }else{
+          curData.manualAch = curData.manualAch.filter(x => x !== a.id);
+        }
+        saveData(curData);
+        renderAll();
+      });
+      label.appendChild(cb);
+      const tt = document.createElement('span');
+      tt.className = 'ac-t';
+      tt.innerHTML = '<b>' + esc(a.icon + ' ' + t(a.name)) + '</b><span>' + t('勾選即認領此成就（仍需達成國家條件）') + '</span>';
+      label.appendChild(tt);
+      const pts = document.createElement('span');
+      pts.className = 'ac-p';
+      pts.textContent = '+' + a.pts;
+      label.appendChild(pts);
+      wrap.appendChild(label);
+    });
+  }else{
+    field.classList.add('hidden');
+  }
+  openDlg('dlgRecord');
+}
+function saveRecord(){
+  if(selectedId == null){ closeDlg('dlgRecord'); return; }
+  const id = selectedId;
+  const rec = {
+    type: Number($('recType').value) || 2,
+    date: $('recDate').value || '',
+    rating: Number($('recRating').value) || 0,
+    note: $('recNote').value.trim().slice(0, 300)
+  };
+  const beforeEarn = new Set(ACH.filter(a => curScore.earned[a.id]).map(a => a.id));
+  const beforeLevel = curScore.level;
+  const beforeTotal = curScore.total;
+  const beforeBest = curScore.best[id];
+  if(!curData.records[id]) curData.records[id] = [];
+  if(recEditIdx == null){
+    curData.records[id].push(rec);
+  }else{
+    curData.records[id][recEditIdx] = rec;
+  }
+  recEditIdx = null;
+  saveData(curData);
+  closeDlg('dlgRecord');
+  renderAll();
+  const newEarn = ACH.filter(a => !beforeEarn.has(a.id) && curScore.earned[a.id]);
+  const delta = curScore.total - beforeTotal;
+  const isFirst = beforeBest === 0 && curScore.best[id] > 0;
+
+  /* —— 新增旅程的反應：地圖慶祝特效＋成就橫幅＋升級全屏 —— */
+  const l = geoLayer && geoLayer.getLayers().find(x => x.feature && x.feature.properties.id === id);
+  if(l && map){
+    const c = l.getBounds().getCenter();
+    pulseCountry(id);
+    pingAt(c);
+    burstAt(c);
+    if(delta > 0) flyScore(c, '+' + delta + ' 分');
+  }
+  if(newEarn.length) achBanner(newEarn);
+  if(curScore.level > beforeLevel) levelUpOverlay(curScore.level, beforeLevel);
+
+  if(newEarn.length){
+    snack(t('解鎖成就 ') + newEarn.length + t(' 項：') + newEarn.map(a => t(a.name)).join('、'));
+  }else{
+    snack((isFirst ? t('首次記錄 ') : t('已記錄：')) + t(COUNTRIES[id].zh) + ' ' + t(TYPE_NAME[rec.type]) + ' +' + TYPE_PTS[rec.type] + t(' 分'));
+  }
+}
+
+/* ============================================================
+   地圖反應特效
+   ============================================================ */
+function pulseCountry(id){
+  const rec = layers[id];
+  if(!rec || !rec.l) return;
+  const base = styleFor(id, id === selectedId);
+  rec.l.setStyle({weight:4, color:'#C9932A', fillColor:'#E6A85C', fillOpacity:.95, opacity:1});
+  setTimeout(()=>{ if(rec.l) rec.l.setStyle(base); }, 1500);
+}
+function pingAt(latlng){
+  const wrap = '<div class="fx-ping"><i></i></div>';
+  const icon = L.divIcon({className:'fx-icon', html:wrap, iconSize:[0,0], iconAnchor:[0,0]});
+  const m = L.marker(latlng, {icon, interactive:false, zIndexOffset:2500}).addTo(map);
+  setTimeout(()=>m.remove(), 1200);
+}
+function burstAt(latlng){
+  const colors = ['#A63D2F','#C9932A','#2E5D3F','#E08A3C','#D9A03E','#8A6D10'];
+  let parts = '';
+  for(let i=0;i<16;i++){
+    const ang = Math.random()*Math.PI*2;
+    const dist = 36 + Math.random()*72;
+    parts += '<i style="--dx:'+Math.round(Math.cos(ang)*dist)+'px;--dy:'+Math.round(Math.sin(ang)*dist)+'px;--rot:'+Math.round(Math.random()*720-360)+'deg;background:'+colors[Math.floor(Math.random()*colors.length)]+';animation-delay:'+(Math.random()*0.1).toFixed(2)+'s"></i>';
+  }
+  const icon = L.divIcon({className:'fx-icon', html:'<div class="fx-burst">'+parts+'</div>', iconSize:[0,0], iconAnchor:[0,0]});
+  const m = L.marker(latlng, {icon, interactive:false, zIndexOffset:2200}).addTo(map);
+  setTimeout(()=>m.remove(), 1600);
+}
+function flyScore(latlng, text){
+  const icon = L.divIcon({className:'fx-icon', html:'<div class="fx-score">'+esc(text)+'</div>', iconSize:[0,0], iconAnchor:[0,0]});
+  const m = L.marker(latlng, {icon, interactive:false, zIndexOffset:3000}).addTo(map);
+  setTimeout(()=>m.remove(), 1600);
+}
+function achBanner(list){
+  const wrap = $('achToastWrap');
+  list.slice(0,3).forEach((a,i)=>{
+    const d = document.createElement('div');
+    d.className = 'ach-banner';
+    d.innerHTML = '<div class="ab-ic">'+a.icon+'</div><div class="ab-body"><div class="ab-tag">'+esc(t('解鎖成就 '))+'</div><div class="ab-name">'+esc(t(a.name))+'</div></div><div class="ab-pts">+'+a.pts+' '+esc(t('分'))+'</div>';
+    wrap.appendChild(d);
+    setTimeout(()=>{ d.style.transition='opacity .4s, transform .4s'; d.style.opacity='0'; d.style.transform='translateY(-14px)'; setTimeout(()=>d.remove(), 420); }, 4600 + i*700);
+  });
+}
+function levelUpOverlay(lv, prev){
+  const overlay = document.createElement('div');
+  overlay.className = 'levelup-overlay';
+  let sparks = '';
+  for(let i=0;i<26;i++){
+    const ang = Math.random()*Math.PI*2, dist = 90 + Math.random()*220;
+    sparks += '<i style="--dx:'+Math.round(Math.cos(ang)*dist)+'px;--dy:'+Math.round(Math.sin(ang)*dist)+'px;--rot:'+Math.round(Math.random()*720-360)+'deg;background:'+['#A63D2F','#C9932A','#2E5D3F','#E08A3C'][i%4]+';left:50%;top:38%;animation-delay:'+(Math.random()*0.25).toFixed(2)+'s"></i>';
+  }
+  overlay.innerHTML =
+    '<div class="lu-spark">'+sparks+'</div>'+
+    '<div class="lu-card">'+
+      '<div class="lu-lv">'+esc(t('等級提升！'))+' LV.'+(prev+1)+' → LV.'+(lv+1)+'</div>'+
+      '<div class="lu-icon">'+LEVELS[lv].icon+'</div>'+
+      '<div class="lu-name">'+esc(t(LEVELS[lv].name))+'</div>'+
+      '<div class="lu-pts">'+esc(t('累計總分'))+' <b>'+curScore.total+'</b> '+esc(t('分'))+'</div>'+
+      '<div class="lu-desc">'+esc(t('造訪國家：'))+' '+curScore.visited+' / 55　・　'+esc(t('解鎖成就：'))+' '+ACH.filter(a=>curScore.earned[a.id]).length+'</div>'+
+      '<mdui-button variant="filled" id="luClose">'+esc(t('繼續探索'))+'</mdui-button>'+
+    '</div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('#luClose').addEventListener('click', ()=>{ overlay.remove(); });
+  document.addEventListener('keydown', function h(e){ if(e.key==='Escape'){ overlay.remove(); document.removeEventListener('keydown', h); } });
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+}
+
+/* ============================================================
+   渲染入口
+   ============================================================ */
+function renderAll(){
+  curScore = computeScore(curData);
+  renderAppBar();
+  renderLevelStrip();
+  renderMapColors();
+  if(selectedId != null) renderPanel(selectedId);
+}
+function renderAppBar(){
+  $('appScore').textContent = curScore.total;
+  $('appLevel').textContent = LEVELS[curScore.level].icon + ' ' + t(LEVELS[curScore.level].name);
+  const icon = $('btnLock').querySelector('svg');
+  icon.innerHTML = locked
+    ? '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'
+    : '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
+}
+function renderLevelStrip(){
+  const s = curScore;
+  const lv = LEVELS[s.level];
+  $('levelStrip').classList.remove('hidden');
+  $('lsLevel').textContent = 'LV.' + (s.level+1) + ' · ' + lv.icon + ' ' + t(lv.name);
+  if(s.level >= LEVELS.length - 1){
+    $('levelProgress').value = 1;
+    $('lsNext').textContent = t('已達最高等級');
+  }else{
+    const next = LEVELS[s.level+1];
+    const span = next.pts - lv.pts;
+    $('levelProgress').value = Math.min(1, Math.max(0, (s.total - lv.pts) / span));
+    $('lsNext').textContent = t('距「') + t(next.name) + t('」還差 ') + (next.pts - s.total) + t(' 分');
+  }
+}
+
+/* ============================================================
+   進入地圖／回首頁
+   ============================================================ */
+function enterMap(code){
+  const d = dataOf(code);
+  if(!d){ snack(t('本機找不到 ') + code + t(' 的資料（純靜態版無法跨裝置讀取）')); return; }
+  curCode = code; curData = d;
+  locked = !!d.passHash;
+  selectedId = null;
+  $('view-home').classList.add('hidden');
+  $('view-map').classList.remove('hidden');
+  $('appbar').classList.remove('hidden');
+  lsSet(LS_ACTIVE, code);
+  initMapIfNeeded();
+  renderAll();
+  setTimeout(fitMapView, 120);
+  setTimeout(()=>{ ['dlgCreate','dlgLoad'].forEach(id => { const dlg = $(id); if(dlg.open) dlg.open = false; }); }, 150);
+}
+function showHome(){
+  curCode = null; curData = null; curScore = null; selectedId = null;
+  $('view-home').classList.remove('hidden');
+  $('view-map').classList.add('hidden');
+  $('appbar').classList.add('hidden');
+  renderHome();
+  window.scrollTo(0,0);
+}
+function renderHome(){
+  const active = lsGet(LS_ACTIVE, null);
+  const r = registry();
+  const card = $('continueCard');
+  if(active && r[active] && dataOf(active)){
+    card.classList.remove('hidden');
+    $('ccName').textContent = r[active].name;
+    const d = dataOf(active), s = computeScore(d);
+    $('ccMeta').textContent = active + ' · ' + s.total + t(' 分 · ') + LEVELS[s.level].icon + ' ' + t(LEVELS[s.level].name);
+  }else{
+    card.classList.add('hidden');
+  }
+}
+function renderLocalMaps(){
+  const wrap = $('localMaps');
+  const r = registry();
+  const codes = Object.keys(r).sort((a, b) => (r[b].createdAt || 0) - (r[a].createdAt || 0));
+  if(!codes.length){ wrap.innerHTML = '<div class="fl-hint" style="margin:0">' + t('尚未建立任何地圖 — 從首頁「建立我的地圖」開始。') + '</div>'; return; }
+  wrap.innerHTML = '';
+  codes.forEach(code => {
+    const d = dataOf(code);
+    if(!d) return;
+    const sc = computeScore(d);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'local-map' + (code === curCode ? ' active' : '');
+    b.innerHTML = '<span class="lm-name">' + esc(d.name) + '</span><span class="lm-code">' + code + '</span><span class="lm-meta">' + sc.total + t(' 分 · ') + t(LEVELS[sc.level].name) + '</span>';
+    b.addEventListener('click', () => { closeDlg('dlgLoad'); enterMap(code); });
+    wrap.appendChild(b);
+  });
+}
+
+/* ============================================================
+   縣市搜尋
+   ============================================================ */
+const psInput = $('prefSearch');
+let psSel = -1;
+function renderPrefSearch(){
+  const q = psInput.value.trim().toLowerCase();
+  const drop = $('prefSearchDrop');
+  $('psClear').style.display = psInput.value ? '' : 'none';
+  if(!q){ drop.classList.add('hidden'); return; }
+  const hits = [];
+  for(let id = 1; id <= 55; id++){
+    const p = COUNTRIES[id];
+    if(!p) continue;
+    const zh = p.zh.toLowerCase(), loc = p.loc.toLowerCase(), rg = REGIONS[p.region].name.toLowerCase();
+    const en = (EN_PREF[id]||'').toLowerCase(), fr = (FR_PREF[id]||'').toLowerCase();
+    let sc = -1;
+    if(q.length <= 2 && zh.startsWith(q)) sc = 60;
+    else if(zh.includes(q)) sc = 50;
+    if(loc.includes(q) && sc < 45) sc = 45;
+    if(en.startsWith(q) && sc < 42) sc = 42;
+    if(fr.startsWith(q) && sc < 40) sc = 40;
+    if(rg.includes(q) && sc < 30) sc = 30;
+    if(sc > 0) hits.push({id, sc});
+  }
+  hits.sort((a, b) => b.sc - a.sc);
+  if(!hits.length){
+    drop.innerHTML = '<div class="ps-empty">' + t('找不到「') + esc(q) + t('」') + '</div>';
+    drop.classList.remove('hidden');
+    return;
+  }
+  const shown = hits.slice(0, 12);
+  drop.innerHTML = shown.map((h, i) => {
+    const p = COUNTRIES[h.id];
+    return '<button type="button" class="ps-item' + (i === psSel ? ' on' : '') + '" data-id="' + h.id + '">' +
+      '<span class="ps-zh">' + esc(prefName(h.id)) + '</span><span class="ps-ja">' + esc(p.loc) + '</span>' +
+      '<span class="ps-reg">' + esc(t(REGIONS[p.region].name)) + '</span>' +
+    '</button>';
+  }).join('');
+  drop.classList.remove('hidden');
+  drop.querySelectorAll('.ps-item').forEach(b => b.addEventListener('click', () => goPref(+b.dataset.id)));
+}
+function goPref(id){
+  psInput.value = '';
+  psSel = -1;
+  $('psClear').style.display = 'none';
+  $('prefSearchDrop').classList.add('hidden');
+  $('prefSearchWrap').classList.remove('open');
+  selectPref(id);
+  flyToCountry(id);
+}
+</script>
