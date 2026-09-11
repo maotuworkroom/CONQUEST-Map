@@ -13,13 +13,19 @@
 | 中國制霸 | `china-conquest/` | 中國 34 個省級行政區制霸記錄器 |
 | 美國制霸 | `usa-conquest/` | 50 州 + 華盛頓特區（51 個州級單位） |
 | 歐洲制霸 | `europe-conquest/` | 歐洲 7 大區域制霸記錄器 |
+| 德國制霸 | `germany-conquest/` | 德國 16 個聯邦州制霸記錄器 |
+| 法國制霸 | `france-conquest/` | 法國 96 個本土省制霸記錄器 |
 | 澳洲制霸 | `australia-conquest/` | 澳洲 6 州 + 2 領地制霸記錄器 |
 | 東南亞制霸 | `sea-conquest/` | 東南亞 11 國制霸記錄器 |
 | 俄羅斯制霸 | `russia-conquest/` | 俄羅斯 83 個聯邦主體制霸記錄器 |
 | 加拿大制霸 | `canada-conquest/` | 加拿大 13 個省份/地區制霸記錄器 |
 | 冰島制霸 | `iceland-conquest/` | 冰島 8 個地區制霸記錄器 |
+| 瑞典制霸 | `sweden-conquest/` | 瑞典 21 個省制霸記錄器 |
+| 芬蘭制霸 | `finland-conquest/` | 芬蘭 19 個區制霸記錄器 |
 | 中東制霸 | `middle-east-conquest/` | 中東 16 個國家/地區制霸記錄器 |
 | 南美制霸 | `south-america-conquest/` | 南美洲 13 國制霸記錄器 |
+| 巴西制霸 | `brazil-conquest/` | 巴西 27 個州制霸記錄器 |
+| 阿根廷制霸 | `argentina-conquest/` | 阿根廷 24 個省制霸記錄器 |
 | 印度制霸 | `india-conquest/` | 印度 36 個邦/聯邦屬地制霸記錄器 |
 
 ## 運行方式

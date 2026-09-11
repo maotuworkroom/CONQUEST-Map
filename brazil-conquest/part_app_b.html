@@ -1,0 +1,568 @@
+<script>
+/* ============================================================
+   愿望清单／时间线
+   ============================================================ */
+let wishTab = 'wish';
+function renderWishDialog(){
+  const body = $('#wishBody');
+  $('#wtWishN').textContent = Object.keys(getWish(curData)).length;
+  $('#wtWish').classList.toggle('active', wishTab === 'wish');
+  $('#wtTl').classList.toggle('active', wishTab === 'tl');
+  if(wishTab === 'wish') renderWishTab();
+  else renderTimelineTab();
+  body.scrollTop = 0;
+}
+function renderWishTab(){
+  const wish = getWish(curData);
+  const ids = PREFS_ALL.filter(id => wish[id]);
+  const body = $('#wishBody');
+  if(!ids.length){
+    body.innerHTML = `<div class="wish-empty">${t('愿望清单还是空的')}<br>${t('在地图上点选州，把想去的地方收进来吧')}</div>`;
+    return;
+  }
+  body.innerHTML = `<div class="wish-grid">` + ids.map(id => {
+    const p = PROVINCES[id];
+    const visited = curScore.prefsBy[id] > 0;
+    return `<div class="wish-card">
+      <h4>${prefName(id)}${LANG === 'pt' || LANG === 'en' ? '' : `<span class="wz">${p.pt}</span>`}</h4>
+      <span class="w-region">${t(REGIONS[p.region].name)} · ${visited ? t('已造访') : t('未造访')}</span>
+      <div class="w-tag">${t(p.tagline)}</div>
+      <div class="w-acts">
+        <mdui-button size="small" variant="filled" class="w-go" data-id="${id}">${t('前往地图')}</mdui-button>
+        <mdui-button size="small" variant="text" class="w-del" data-id="${id}">${t('移除')}</mdui-button>
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
+  body.querySelectorAll('.w-go').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = parseInt(b.dataset.id, 10);
+      $('dlgWish').open = false;
+      enterMap();
+      selectPref(id);
+    });
+  });
+  body.querySelectorAll('.w-del').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = parseInt(b.dataset.id, 10);
+      const wish = getWish(curData);
+      delete wish[id];
+      writeMap(curData);
+      renderWishDialog();
+      if(selectedId === id) renderPanel(id);
+      showSnack(t('已从愿望清单移除'));
+    });
+  });
+}
+function renderTimelineTab(){
+  const all = [];
+  const prefs = getPrefs(curData);
+  PREFS_ALL.forEach(pid => {
+    const recs = getRecords(prefs, pid);
+    recs.forEach(r => all.push({ pid, rec:r }));
+  });
+  all.sort((a,b) => (b.rec.date||'').localeCompare(a.rec.date||''));
+  const body = $('#wishBody');
+  if(!all.length){
+    body.innerHTML = `<div class="wish-empty">${t('尚未新增任何旅程')}</div>`;
+    return;
+  }
+  body.innerHTML = `<div class="tl-list">` + all.map(x => {
+    const p = PROVINCES[x.pid];
+    const stars = x.rec.rating ? '<span class="tl-rt">' + '★'.repeat(x.rec.rating) + '</span>' : '';
+    return `<div class="tl-item">
+      <div class="tl-date">${x.rec.date}</div>
+      <div class="tl-main">
+        <div class="tl-top">
+          <span class="tl-name">${prefName(x.pid)}${LANG === 'pt' || LANG === 'en' ? '' : `<span class="wz">${p.pt}</span>`}</span>
+          <span class="tl-type t${x.rec.type}">${t(TYPE_NAME[x.rec.type])}</span>
+          ${stars}
+        </div>
+        ${x.rec.note ? `<div class="tl-note">${escapeHtml(x.rec.note)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+/* ============================================================
+   成就
+   ============================================================ */
+let achCat = '全部';
+function renderAchDialog(){
+  const gotN = ACH.filter(a => curScore.ach[a.id]).length;
+  $('#achSummary').innerHTML = `${t('已达成')} <b>${gotN}</b> / ${ACH.length} · ${t('累计加成')} <b>+${curScore.achBonus}</b> ${t('分')}`;
+  $('#achCats').innerHTML = ACH_CATS.map(c =>
+    `<button type="button" class="ach-cat ${c===achCat?'on':''}" data-c="${c}">${t(c)}</button>`
+  ).join('');
+  $('#achCats').querySelectorAll('.ach-cat').forEach(b => {
+    b.addEventListener('click', () => { achCat = b.dataset.c; renderAchDialog(); });
+  });
+  const list = ACH.filter(a => achCat === '全部' || a.cat === achCat);
+  $('#achGrid').innerHTML = list.map(a => {
+    const got = !!curScore.ach[a.id];
+    const manual = a.kind === 'manual';
+    const canManual = !got && manual && (a.prefs||[]).every(pid => (curScore.prefsBy[pid]||0) >= a.level);
+    return `<div class="ach-item ${got?'got':''}" data-id="${a.id}">
+      <div class="ai-top">
+        <span class="ai-ic">${a.icon}</span>
+        <span class="ai-name">${t(a.name)}</span>
+        <span class="ai-pts">+${a.pts}</span>
+        <span class="ai-state"></span>
+      </div>
+      <div class="ai-cond">${t(a.cond)}${manual ? ' · ' + t('手动勾选') : ''}</div>
+      ${manual ? `<mdui-button class="ai-manual" size="small" variant="${got?'filled':'tonal'}" data-id="${a.id}" ${canManual?'':'disabled'}>${got?t('已达成'):t('手动达成')}</mdui-button>` : ''}
+    </div>`;
+  }).join('');
+  $('#achGrid').querySelectorAll('.ai-manual').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = b.dataset.id;
+      const ach = getAch(curData);
+      if(ach[id]){ delete ach[id]; }
+      else { ach[id] = true; }
+      writeMap(curData);
+      curScore = computeScore(curData);
+      renderAppBar();
+      renderAchDialog();
+      renderLevelStrip();
+      updateMapStyle();
+    });
+  });
+}
+
+/* ============================================================
+   战报
+   ============================================================ */
+function buildReportText(){
+  const s = curScore;
+  const visited = Object.keys(s.prefsBy).length;
+  const best = (() => {
+    let b = 0;
+    PREFS_ALL.forEach(pid => {
+      const r = getRating(getPrefs(curData), pid);
+      if(r > b) b = r;
+    });
+    return b;
+  })();
+  const avg = (() => {
+    let sum = 0, n = 0;
+    PREFS_ALL.forEach(pid => {
+      const r = getRating(getPrefs(curData), pid);
+      if(r > 0){ sum += r; n++; }
+    });
+    return n ? (sum/n).toFixed(1) : '0';
+  })();
+  let recCount = 0, photoCount = 0;
+  PREFS_ALL.forEach(pid => {
+    recCount += getRecords(getPrefs(curData), pid).length;
+    photoCount += getPhotos(getPrefs(curData), pid).length;
+  });
+  const L = [];
+  L.push('【' + t('巴西制霸战报') + '】');
+  L.push(t('地图') + '：' + curData.name + '（' + curCode + '）');
+  L.push(t('等级') + '：' + s.level.icon + ' ' + t(s.level.name) + ' · ' + s.total + ' ' + t('分') + ' / ' + s.maxPts + ' ' + t('分'));
+  L.push('');
+  L.push('── ' + t('造访统计') + ' ──');
+  L.push(t('造访过') + ' ' + visited + '/' + PREFS_ALL.length + ' ' + t('州'));
+  L.push(t('途经') + ' ' + s.types[1] + ' · ' + t('游玩') + ' ' + s.types[2] + ' · ' + t('住宿') + ' ' + s.types[3] + ' · ' + t('长居') + ' ' + s.types[4]);
+  L.push(t('最佳评分') + ' ' + best + '/5 · ' + t('平均评分') + ' ' + avg + '/5');
+  L.push(t('全境完成度') + ' ' + Math.round(visited / PREFS_ALL.length * 100) + '%');
+  L.push('');
+  L.push('── ' + t('加成') + ' ──');
+  L.push(t('地区制霸') + ' +' + s.regionBonus + ' ' + t('分'));
+  L.push(t('特殊成就') + ' ' + s.achCnt + '/' + ACH.length + ' · +' + s.achBonus + ' ' + t('分'));
+  L.push('');
+  L.push('── ' + t('旅程') + ' ──');
+  L.push(t('纪录') + ' ' + recCount + ' ' + t('笔') + ' · ' + t('照片') + ' ' + photoCount + ' ' + t('张'));
+  L.push(t('导出日期') + '：' + todayStr());
+  return L.join('\n');
+}
+function renderReport(){
+  const s = curScore;
+  const visited = Object.keys(s.prefsBy).length;
+  const body = $('#reportBody');
+  body.innerHTML = `
+    <div class="report-hero">
+      <div class="rh-level">${t('地图')}：${escapeHtml(curData.name)} · ${curCode}</div>
+      <div class="rh-big">${s.level.icon} ${t(s.level.name)} <span class="em">· ${t('等级')} ${s.level.i}</span></div>
+      <div class="rh-score">${t('累计得分')} <b>${s.total}</b> ${t('分')}</div>
+    </div>
+    <div class="report-stats">
+      <div class="report-stat"><div class="rs-num">${visited}</div><div class="rs-lbl">${t('造访州数')} / ${PREFS_ALL.length}</div></div>
+      <div class="report-stat"><div class="rs-num">${Math.round(visited/PREFS_ALL.length*100)}%</div><div class="rs-lbl">${t('全境完成度')}</div></div>
+      <div class="report-stat"><div class="rs-num">+${s.regionBonus}</div><div class="rs-lbl">${t('地区制霸')}</div></div>
+      <div class="report-stat"><div class="rs-num">${s.achCnt}/${ACH.length}</div><div class="rs-lbl">${t('特殊成就')}</div></div>
+      <div class="report-stat"><div class="rs-num">${s.total}</div><div class="rs-lbl">${t('总分')}</div></div>
+    </div>
+    <div class="report-text" id="reportText">${escapeHtml(buildReportText())}</div>
+    <div class="report-note">${t('战报图片由浏览器即时绘制；资料档为 JSON 文字档，可复制保存。照片仅存本机，不包含在资料档中。')}</div>`;
+}
+function exportReportImage(){
+  try{
+    const W = 1080, H = 1520;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    const s = curScore;
+    const visited = Object.keys(s.prefsBy).length;
+    // 背景
+    ctx.fillStyle = '#FCF8F3'; ctx.fillRect(0,0,W,H);
+    // 顶部条
+    ctx.fillStyle = '#0A7A3D';
+    ctx.fillRect(0,0,W,10);
+    ctx.fillStyle = '#FEDD00'; ctx.fillRect(0,10,W,4);
+    // 标题
+    ctx.fillStyle = '#07592D';
+    ctx.font = '900 52px "Noto Serif SC","Songti TC",serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(t('巴西制霸战报'), W/2, 92);
+    ctx.font = '700 26px "Noto Sans SC",sans-serif';
+    ctx.fillStyle = '#85746C';
+    ctx.fillText(curData.name + ' · ' + curCode, W/2, 134);
+    // 等级/分数
+    ctx.font = '900 30px "Noto Sans SC",sans-serif';
+    ctx.fillStyle = '#211A17';
+    ctx.fillText(s.level.icon + ' ' + t(s.level.name) + ' · ' + s.total + ' ' + t('分'), W/2, 182);
+    // 地图
+    drawMapOnCanvas(ctx, 90, 240, 900, 860);
+    // 图例
+    ctx.textAlign = 'left';
+    ctx.font = '700 22px "Noto Sans SC",sans-serif';
+    const legend = [[1,'#EFEBE2',t('未造访')],[2,'#CBE8D4',t('途经') + ' +2'],[3,'#8FD0A6',t('游玩') + ' +5'],[4,'#4FA876',t('住宿') + ' +10'],[5,'#0A7A3D',t('长居') + ' +20']];
+    const ly = 1135;
+    ctx.fillStyle = '#211A17';
+    ctx.font = '700 24px "Noto Sans SC",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('── ' + t('造访层级') + ' ──', W/2, ly-18);
+    legend.forEach((lg,i) => {
+      const x = 150 + i*166;
+      ctx.fillStyle = lg[1]; ctx.fillRect(x, ly, 34, 34);
+      ctx.strokeStyle = '#E3D5CB'; ctx.lineWidth = 1.5; ctx.strokeRect(x, ly, 34, 34);
+      ctx.fillStyle = '#52443E'; ctx.font = '600 20px "Noto Sans SC",sans-serif';
+      ctx.fillText(lg[2], x+17, ly+58);
+    });
+    // 统计
+    ctx.textAlign = 'center';
+    const stats = [
+      [t('造访州数'), visited + '/' + PREFS_ALL.length],
+      [t('全境完成度'), Math.round(visited/PREFS_ALL.length*100) + '%'],
+      [t('地区制霸'), '+' + s.regionBonus],
+      [t('特殊成就'), s.achCnt + '/' + ACH.length],
+      [t('累计得分'), s.total]
+    ];
+    const sx = [140, 380, 620, 860, 970];
+    ctx.font = '700 22px "Noto Sans SC",sans-serif';
+    ctx.fillStyle = '#85746C';
+    stats.forEach((st,i) => ctx.fillText(st[0], sx[i], 1290));
+    ctx.font = '900 36px "Noto Serif SC",serif';
+    ctx.fillStyle = '#0A7A3D';
+    stats.forEach((st,i) => ctx.fillText(st[1], sx[i], 1338));
+    // 脚注
+    ctx.font = '500 20px "Noto Sans SC",sans-serif';
+    ctx.fillStyle = '#85746C';
+    ctx.fillText(t('导出日期') + '：' + todayStr(), W/2, 1420);
+    ctx.fillStyle = '#B8A89E';
+    ctx.font = '500 17px "Noto Sans SC",sans-serif';
+    ctx.fillText('Brazil Conquest · localStorage only', W/2, 1466);
+    // 导出
+    const a = document.createElement('a');
+    a.download = `brazil-conquest-${curCode}.png`;
+    a.href = cv.toDataURL('image/png');
+    a.click();
+    showSnack(t('已导出战报图片'));
+  }catch(e){
+    showSnack(t('图片导出失败') + '：' + e.message);
+  }
+}
+function drawMapOnCanvas(ctx, ox, oy, w, h){
+  const B = { minLon:-74.1, maxLon:-34.4, minLat:-33.8, maxLat:5.4 };
+  const px = (lon) => ox + (lon - B.minLon) / (B.maxLon - B.minLon) * w;
+  const py = (lat) => oy + (B.maxLat - lat) / (B.maxLat - B.minLat) * h;
+  window.BRAZIL_GEOJSON.features.forEach(f => {
+    const pid = f.properties.id;
+    const mt = curScore.prefsBy[pid] || 0;
+    ctx.beginPath();
+    traceGeo(ctx, f.geometry, px, py);
+    ctx.closePath();
+    ctx.fillStyle = mt > 0 ? TYPE_COLOR[mt] : '#EFEBE2';
+    ctx.globalAlpha = mt > 0 ? .85 : 1;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+  });
+  ctx.strokeStyle = '#E3D5CB';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(ox, oy, w, h);
+}
+function traceGeo(ctx, geom, px, py){
+  if(geom.type === 'Polygon') traceRing(ctx, geom.coordinates, px, py);
+  else if(geom.type === 'MultiPolygon') geom.coordinates.forEach(r => { ctx.beginPath(); traceRing(ctx, r, px, py); ctx.closePath(); });
+}
+function traceRing(ctx, ring, px, py){
+  ring.forEach((pt, i) => {
+    const x = px(pt[0]), y = py(pt[1]);
+    if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+}
+function exportData(){
+  const blob = new Blob([JSON.stringify(curData, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.download = `brazil-conquest-${curCode}.json`;
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  showSnack(t('已导出资料档'));
+}
+function copyText(txt){
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(()=>showSnack(t('已复制'))).catch(()=>fallbackCopy(txt));
+    }else fallbackCopy(txt);
+  }catch(e){ fallbackCopy(txt); }
+}
+function fallbackCopy(txt){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    showSnack(t('已复制'));
+  }catch(e){}
+}
+
+/* ============================================================
+   旅游建议
+   ============================================================ */
+const HOT_PREFS = [23,24,16,1,25,13,26,21];
+function renderSuggestDialog(){
+  const body = $('#sugList');
+  const s = curScore;
+  const unvisited = PREFS_ALL.filter(pid => !s.prefsBy[pid]);
+  const scored = unvisited.map(pid => {
+    let pot = 0;
+    ACH.forEach(a => {
+      if(a.kind !== 'groups') return;
+      const need = (a.groups && a.groups[0]) || [];
+      if(!need.includes(pid)) return;
+      const others = need.filter(x => x !== pid);
+      if(others.every(x => (s.prefsBy[x]||0) >= a.groups[1])) pot += a.pts;
+    });
+    const hot = HOT_PREFS.includes(pid) ? 12 : 0;
+    const regionIdx = Object.keys(REGIONS).findIndex(k => REGIONS[k].ids.includes(pid));
+    const regionVisited = REGIONS[Object.keys(REGIONS)[regionIdx]].ids.some(x => s.prefsBy[x]);
+    const regionPot = regionVisited ? 6 : 2;
+    return { pid, pot: pot + hot + regionPot };
+  });
+  scored.sort((a,b) => b.pot - a.pot);
+  const top = scored.slice(0,8);
+  if(!top.length){
+    body.innerHTML = `<div class="sug-empty">🎉 ${t('全境制霸达成！巴西每一寸土地都有你的足迹。')}</div>`;
+    return;
+  }
+  body.innerHTML = top.map((x,i) => {
+    const p = PROVINCES[x.pid];
+    const achs = ACH.filter(a => a.kind === 'groups' && ((a.groups && a.groups[0]) || []).includes(x.pid) && (a.groups[0] || []).filter(o => o !== x.pid).every(o => (s.prefsBy[o] || 0) >= a.groups[1]));
+    const reason = achs.length
+      ? t('可解锁成就') + '：' + achs.slice(0,2).map(a => t(a.name)).join('、') + '（+' + achs.reduce((z,a)=>z+a.pts,0) + '）'
+      : (HOT_PREFS.includes(x.pid) ? t('人气目的地') : t('下一个制霸目标'));
+    return `<div class="sug-card" data-id="${x.pid}">
+      <div class="sug-go">#${i+1}</div>
+      <div class="sug-body">
+        <div class="sug-name">${prefName(x.pid)}<span class="sug-region">${LANG === 'pt' || LANG === 'en' ? '' : p.pt + ' · '}${t(REGIONS[p.region].name)}</span></div>
+        <div class="sug-reason">${reason}</div>
+      </div>
+      <mdui-button size="small" variant="filled">${t('前往')}</mdui-button>
+    </div>`;
+  }).join('');
+  body.querySelectorAll('.sug-card').forEach(c => {
+    c.addEventListener('click', () => {
+      const id = parseInt(c.dataset.id, 10);
+      $('dlgSuggest').open = false;
+      enterMap();
+      selectPref(id);
+    });
+  });
+}
+
+/* ============================================================
+   好友排行
+   ============================================================ */
+let friendSort = { key:'score', asc:false };
+let friends = [];
+function readFriends(){
+  try{ friends = JSON.parse(localStorage.getItem(STORE + 'friends') || '[]'); }catch(e){ friends = []; }
+}
+function saveFriends(){
+  try{ localStorage.setItem(STORE + 'friends', JSON.stringify(friends)); }catch(e){}
+}
+function renderFriendsDialog(){
+  readFriends();
+  const list = [{ self:true, name:curData.name, code:curCode, data:curData, score:curScore.total, level:curScore.level.i }];
+  friends.forEach(f => list.push({ self:false, name:f.name, code:f.code, data:f.data, score:f.score, level:f.level, key:f.key }));
+  const col = friendSort.key, asc = friendSort.asc;
+  list.sort((a,b) => {
+    let r = 0;
+    if(col === 'score') r = a.score - b.score;
+    else if(col === 'level') r = a.level - b.level;
+    else if(col === 'name') r = String(a.name).localeCompare(String(b.name));
+    else if(col === 'visited') r = Object.keys(getPrefs(a.data)).length - Object.keys(getPrefs(b.data)).length;
+    if(r === 0) r = String(a.code).localeCompare(String(b.code));
+    return asc ? r : -r;
+  });
+  const body = $('#frScroll');
+  body.innerHTML = `
+    <table class="fr-table">
+      <thead><tr>
+        <th>#</th>
+        <th data-sort="name">${t('地图')}</th>
+        <th data-sort="score" class="fr-sort-on">${t('得分')}</th>
+        <th data-sort="level">${t('等级')}</th>
+        <th data-sort="visited">${t('造访')}</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+        ${list.map((x,i) => `
+          <tr class="${x.self?'me':''}">
+            <td class="fr-rank">${i+1}</td>
+            <td class="fr-name">${escapeHtml(x.name)}<span class="fr-code"> ${x.code}</span>${x.self?'<span class="fr-me-tag">'+t('我')+'</span>':''}</td>
+            <td class="fr-pts">${x.score}</td>
+            <td class="fr-lv">${t(LEVELS[x.level-1].name)}</td>
+            <td>${Object.keys(getPrefs(x.data)).length}/${PREFS_ALL.length}</td>
+            <td>${x.self ? '' : `<mdui-button-icon class="fr-del" data-key="${x.key}" data-i18n-title="删除" title="删除"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></mdui-button-icon>`}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="fr-hint">${t('好友排行说明')}</div>`;
+  body.querySelectorAll('th[data-sort]').forEach(th => {
+    th.classList.toggle('fr-sort-on', th.dataset.sort === friendSort.key);
+    th.addEventListener('click', () => {
+      if(th.dataset.sort === friendSort.key) friendSort.asc = !friendSort.asc;
+      else { friendSort.key = th.dataset.sort; friendSort.asc = false; }
+      renderFriendsDialog();
+    });
+  });
+  body.querySelectorAll('.fr-del').forEach(b => {
+    b.addEventListener('click', () => {
+      const key = b.dataset.key;
+      friends = friends.filter(f => f.key !== key);
+      saveFriends();
+      renderFriendsDialog();
+      showSnack(t('已移除好友资料'));
+    });
+  });
+}
+function importFriend(file){
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try{
+      const d = JSON.parse(ev.target.result);
+      if(!d || !d.code || !d.prefs || !d.version){
+        showSnack(t('资料档格式不正确'));
+        return;
+      }
+      const s = computeScore(d);
+      const key = 'F' + Date.now() + Math.floor(Math.random()*999);
+      friends.push({ key, name:d.name, code:d.code, data:d, score:s.total, level:s.level.i });
+      saveFriends();
+      renderFriendsDialog();
+      showSnack(t('已汇入好友') + '：' + d.name + '（' + s.total + ' ' + t('分') + '）');
+    }catch(e){ showSnack(t('资料档格式不正确')); }
+  };
+  reader.readAsText(file);
+}
+
+/* ============================================================
+   对话框接线
+   ============================================================ */
+function openCreateDialog(){
+  $('cfName').value = '';
+  $('cfPass').value = '';
+  $('cfPass2').value = '';
+  $('dlgCreate').open = true;
+  setTimeout(() => $('cfName').focus(), 120);
+}
+function createMap(){
+  const name = $('cfName').value.trim();
+  const pass = $('cfPass').value;
+  const pass2 = $('cfPass2').value;
+  if(!name){ showSnack(t('请输入地图名称')); return; }
+  if(pass !== pass2){ showSnack(t('两次输入的密码不一致')); return; }
+  if(/[<>"'\\]/.test(name)){ showSnack(t('地图名称不得使用特殊字符')); return; }
+  const code = genCode();
+  const data = { version:VERSION, name, code, pass, created:Date.now(), prefs:{}, wish:{}, ach:{} };
+  const list = readLocalMaps();
+  list.push({ name, code, updated:Date.now() });
+  saveLocalMaps(list);
+  writeMap(data);
+  $('dlgCreate').open = false;
+  loadMap(code);
+  enterMap();
+  showSnack(t('已建立地图') + '：' + code);
+}
+function openLoadDialog(){
+  $('lfCode').value = '';
+  renderLocalMaps();
+  $('dlgLoad').open = true;
+  setTimeout(() => $('lfCode').focus(), 120);
+}
+function loadByCode(){
+  const code = $('lfCode').value.trim().toUpperCase();
+  if(!/^BRA-[A-Z0-9]{4}$/.test(code)){ showSnack(t('识别码格式不正确')); return; }
+  if(!loadMap(code)){ showSnack(t('找不到这张地图')); return; }
+  $('dlgLoad').open = false;
+  enterMap();
+}
+function renderLocalMaps(){
+  const box = $('#localMaps');
+  if(!box) return;
+  const list = readLocalMaps();
+  if(!list.length){
+    box.innerHTML = `<div class="wish-empty" style="padding:14px">${t('本机还没有建立过地图')}</div>`;
+    return;
+  }
+  box.innerHTML = list.slice().sort((a,b) => b.updated - a.updated).map(m => {
+    const d = readMap(m.code);
+    const n = d ? Object.keys(getPrefs(d)).length : 0;
+    return `<button type="button" class="local-map ${m.code===curCode?'active':''}" data-code="${m.code}">
+      <span class="lm-name">${escapeHtml(m.name)}</span>
+      <span class="lm-code">${m.code}</span>
+      <span class="lm-meta">${n}/${PREFS_ALL.length} ${t('州')} · ${new Date(m.updated).toLocaleDateString()}</span>
+    </button>`;
+  }).join('');
+  box.querySelectorAll('.local-map').forEach(b => {
+    b.addEventListener('click', () => {
+      const code = b.dataset.code;
+      if(!loadMap(code)) return;
+      $('dlgLoad').open = false;
+      enterMap();
+    });
+  });
+}
+function openUnlockDialog(){
+  $('ufPass').value = '';
+  $('dlgUnlock').open = true;
+  setTimeout(() => $('ufPass').focus(), 120);
+}
+function tryUnlock(){
+  const v = $('ufPass').value;
+  if(v === (curData.pass || '')){
+    curUnlock = true;
+    $('dlgUnlock').open = false;
+    renderAppBar();
+    if(selectedId != null) renderPanel(selectedId);
+    showSnack(t('已解锁编辑'));
+  }else{
+    showSnack(t('密码错误'));
+  }
+}
+function confirmDialog(title, desc, cb){
+  $('#confirmTitle').textContent = title;
+  $('#confirmDesc').textContent = desc;
+  const ok = $('#btnConfirmOk');
+  ok.onclick = () => { $('dlgConfirm').open = false; cb(); };
+  $('#btnConfirmNo').onclick = () => { $('dlgConfirm').open = false; };
+  $('dlgConfirm').open = true;
+}
+</script>

@@ -1,0 +1,233 @@
+<script>
+/* ============================================================
+   初始化与事件
+   ============================================================ */
+function requireMap(fn){
+  if(!curCode || !curData){ showSnack(t('请先建立或载入地图')); return; }
+  fn();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  applyStaticText();
+  document.querySelectorAll('#langSwitch button').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === LANG);
+    b.addEventListener('click', () => {
+      if(b.dataset.lang === LANG) return;
+      LANG = b.dataset.lang;
+      applyLang();
+    });
+  });
+
+  // 首页
+  $('#btnCreate').addEventListener('click', openCreateDialog);
+  $('#btnLoad').addEventListener('click', openLoadDialog);
+  $('#btnContinue').addEventListener('click', () => {
+    if(curCode) enterMap();
+    else openLoadDialog();
+  });
+  $('#btnSwitch').addEventListener('click', openLoadDialog);
+  $('#btnAchTeaser').addEventListener('click', () => requireMap(() => { renderAchDialog(); $('dlgAch').open = true; }));
+  $('#btnSuggestTeaser').addEventListener('click', () => requireMap(() => { renderSuggestDialog(); $('dlgSuggest').open = true; }));
+  $('#btnFriendsTeaser').addEventListener('click', () => requireMap(() => { renderFriendsDialog(); $('dlgFriends').open = true; }));
+  document.querySelectorAll('.rm-btn[data-go="map"]').forEach(b => {
+    b.addEventListener('click', () => {
+      if(!curCode){ openCreateDialog(); return; }
+      enterMap();
+    });
+  });
+
+  // 顶栏
+  $('#btnAch').addEventListener('click', () => requireMap(() => { renderAchDialog(); $('dlgAch').open = true; }));
+  $('#btnWish').addEventListener('click', () => requireMap(() => { renderWishDialog(); $('dlgWish').open = true; }));
+  $('#btnReport').addEventListener('click', () => requireMap(() => { renderReport(); $('dlgReport').open = true; }));
+  $('#btnLock').addEventListener('click', () => {
+    if(!curCode || !curData){ showSnack(t('请先建立或载入地图')); return; }
+    if(curUnlock){
+      curUnlock = false;
+      if(selectedId != null) renderPanel(selectedId);
+      showSnack(t('已锁定编辑'));
+    }else{
+      if(curData.pass) openUnlockDialog();
+      else{
+        curUnlock = true;
+        if(selectedId != null) renderPanel(selectedId);
+        showSnack(t('已解锁编辑'));
+      }
+    }
+  });
+  $('#btnHome').addEventListener('click', goHome);
+
+  // 等级条 → 战报
+  $('#levelStrip').addEventListener('click', () => requireMap(() => { renderReport(); $('dlgReport').open = true; }));
+
+  // 地图视图
+  $('#prefSearch').addEventListener('input', () => {
+    renderSearchResults($('#prefSearch').value);
+    $('#psClear').style.display = $('#prefSearch').value ? 'inline-flex' : 'none';
+  });
+  $('#psToggle').addEventListener('click', e => {
+    e.stopPropagation();
+    const w = $('#prefSearchWrap');
+    w.classList.toggle('open');
+    if(w.classList.contains('open')) setTimeout(() => $('#prefSearch').focus(), 60);
+  });
+  $('#psClear').addEventListener('click', () => {
+    $('#prefSearch').value = '';
+    renderSearchResults('');
+    $('#psClear').style.display = 'none';
+    $('#prefSearch').focus();
+  });
+  document.addEventListener('click', e => {
+    const w = $('#prefSearchWrap');
+    if(w && w.classList.contains('open') && !w.contains(e.target)){
+      w.classList.remove('open');
+    }
+  });
+
+  // 面板
+  $('#btnRandom').addEventListener('click', () => requireMap(() => {
+    const pool = curScore ? PREFS_ALL.filter(id => !curScore.prefsBy[id]) : [];
+    const from = pool.length ? pool : PREFS_ALL;
+    selectPref(from[Math.floor(Math.random()*from.length)]);
+  }));
+  $('#btnWishToggle').addEventListener('click', () => {
+    if(!curUnlock){ showSnack(t('已锁定编辑')); return; }
+    if(selectedId == null) return;
+    const wish = getWish(curData);
+    if(wish[selectedId]){ delete wish[selectedId]; showSnack(t('已从愿望清单移除')); }
+    else { wish[selectedId] = true; showSnack(t('已加入愿望清单')); }
+    writeMap(curData);
+    renderPanel(selectedId);
+  });
+  $('#btnAddRecord').addEventListener('click', () => {
+    if(!curUnlock){ openUnlockDialog(); return; }
+    if(selectedId == null){ showSnack(t('请先点选一个州')); return; }
+    openRecordDialog(selectedId);
+  });
+  $('#btnClearPref').addEventListener('click', () => {
+    if(!curUnlock){ showSnack(t('已锁定编辑')); return; }
+    if(selectedId == null) return;
+    const pid = selectedId;
+    confirmDialog(t('清除此州'), t('将删除此州的全部旅程、评分与照片，此操作无法复原。'), () => {
+      const prefs = getPrefs(curData);
+      delete prefs[pid];
+      writeMap(curData);
+      curScore = computeScore(curData);
+      renderAppBar();
+      renderPanel(pid);
+      renderLevelStrip();
+      updateMapStyle();
+      showSnack(t('已清除此州的全部资料'));
+    });
+  });
+  $('#rateStars').addEventListener('click', e => {
+    const b = e.target.closest('.rate-star');
+    if(!b) return;
+    b.click();
+  });
+
+  // 旅程对话框
+  $('#recCancel').addEventListener('click', () => { $('dlgRecord').open = false; });
+  $('#recSubmit').addEventListener('click', saveRecord);
+  $('#recRating').addEventListener('change', () => {
+    const v = parseInt($('#recRating').value, 10) || 0;
+    $('#recRatingVal').textContent = v ? '★'.repeat(v) + '☆'.repeat(5-v) : '';
+  });
+
+  // 建立地图
+  $('#cfCancel').addEventListener('click', () => { $('dlgCreate').open = false; });
+  $('#cfSubmit').addEventListener('click', createMap);
+  $('cfPass2').addEventListener('keydown', e => { if(e.key === 'Enter') createMap(); });
+
+  // 载入地图
+  $('#lfCancel').addEventListener('click', () => { $('dlgLoad').open = false; });
+  $('#lfSubmit').addEventListener('click', loadByCode);
+  $('lfCode').addEventListener('keydown', e => { if(e.key === 'Enter') loadByCode(); });
+  $('#lfImport').addEventListener('click', () => { $('#importFile').click(); });
+  $('#importFile').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try{
+        const d = JSON.parse(ev.target.result);
+        if(!d || !d.code || !d.prefs || !d.version){ showSnack(t('资料档格式不正确')); return; }
+        writeMap(d);
+        const list = readLocalMaps();
+        const ex = list.find(m => m.code === d.code);
+        if(ex){ ex.name = d.name; ex.updated = Date.now(); }
+        else list.push({ name:d.name, code:d.code, updated:Date.now() });
+        saveLocalMaps(list);
+        loadMap(d.code);
+        $('dlgLoad').open = false;
+        enterMap();
+        showSnack(t('已导入资料档') + '：' + d.name);
+      }catch(err){ showSnack(t('资料档格式不正确')); }
+    };
+    reader.readAsText(f);
+    e.target.value = '';
+  });
+
+  // 解锁
+  $('#ufCancel').addEventListener('click', () => { $('dlgUnlock').open = false; });
+  $('#ufSubmit').addEventListener('click', tryUnlock);
+  $('ufPass').addEventListener('keydown', e => { if(e.key === 'Enter') tryUnlock(); });
+
+  // 愿望清单
+  $('#wtWish').addEventListener('click', () => { wishTab = 'wish'; renderWishDialog(); });
+  $('#wtTl').addEventListener('click', () => { wishTab = 'tl'; renderWishDialog(); });
+  $('#wishClose').addEventListener('click', () => { $('dlgWish').open = false; });
+
+  // 成就
+  $('#achClose').addEventListener('click', () => { $('dlgAch').open = false; });
+
+  // 战报
+  $('#rpClose').addEventListener('click', () => { $('dlgReport').open = false; });
+  $('#rpCode').addEventListener('click', () => { copyText(curCode); });
+  $('#rpCopy').addEventListener('click', () => { copyText(buildReportText()); });
+  $('#rpImg').addEventListener('click', exportReportImage);
+  $('#rpExport').addEventListener('click', exportData);
+  $('#rpDelete').addEventListener('click', () => {
+    confirmDialog(t('删除这张地图'), t('将删除「') + curData.name + t('」的全部资料，此操作无法复原。'), () => {
+      removeMap(curCode);
+      const list = readLocalMaps().filter(m => m.code !== curCode);
+      saveLocalMaps(list);
+      try{ localStorage.removeItem(COOKIE); }catch(e){}
+      curCode = null; curData = null; curScore = null; selectedId = null; curUnlock = false;
+      $('#view-map').classList.add('hidden');
+      $('#view-home').classList.remove('hidden');
+      $('#appbar').classList.add('hidden');
+      renderLocalMaps();
+      showSnack(t('已删除地图'));
+    });
+  });
+
+  // 建议
+  $('#sugClose').addEventListener('click', () => { $('dlgSuggest').open = false; });
+
+  // 好友
+  $('#frClose').addEventListener('click', () => { $('dlgFriends').open = false; });
+  $('#frImport').addEventListener('click', () => { $('#friendImport').click(); });
+  $('#friendImport').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if(f) importFriend(f);
+    e.target.value = '';
+  });
+
+  // 照片大图
+  $('#photoClose').addEventListener('click', () => { $('dlgPhoto').open = false; });
+
+  // 回到上次的地图
+  const last = getLast();
+  if(last){
+    const d = readMap(last);
+    if(d){
+      loadMap(last, true);
+      $('#ccName').textContent = d.name;
+      const n = Object.keys(getPrefs(d)).length;
+      $('#ccMeta').textContent = `${d.code} · ${n}/${PREFS_ALL.length} ${t('州')}`;
+      $('#continueCard').classList.remove('hidden');
+    }
+  }
+  renderLocalMaps();
+});
+</script>

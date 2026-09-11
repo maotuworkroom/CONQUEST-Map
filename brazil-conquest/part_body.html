@@ -1,0 +1,226 @@
+</head>
+<body>
+
+<!-- ===== 顶部应用栏 ===== -->
+<mdui-top-app-bar id="appbar" class="hidden">
+  <div class="appbar-inner">
+    <div class="brand">
+      <span class="brand-flag"></span>
+      <span class="brand-name" data-noi18n>巴西<b>制霸</b>地图</span>
+    </div>
+    <div class="appbar-spacer"></div>
+    <div class="score-pill">等级 <span id="appLevel">—</span> <span class="score-num" id="appScore">0</span> 分</div>
+    <mdui-button-icon id="btnAch" data-i18n-title="成就" title="成就">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 6H4v1a3 3 0 0 0 3 3"/><path d="M17 6h3v1a3 3 0 0 1-3 3"/></svg>
+    </mdui-button-icon>
+    <mdui-button-icon id="btnWish" data-i18n-title="愿望清单" title="愿望清单">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>
+    </mdui-button-icon>
+    <mdui-button-icon id="btnReport" data-i18n-title="制霸战报" title="制霸战报">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+    </mdui-button-icon>
+    <mdui-button-icon id="btnLock" data-i18n-title="编辑锁定" title="编辑锁定">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </mdui-button-icon>
+    <mdui-button-icon id="btnHome" data-i18n-title="回首页" title="回首页">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+    </mdui-button-icon>
+  </div>
+</mdui-top-app-bar>
+
+<main>
+  <!-- ============================================================
+       首页
+       ============================================================ -->
+  <div id="view-home">
+    <section class="hero dot-bg">
+      <div class="lang-switch" id="langSwitch">
+        <button data-lang="zh-Hans" class="active" title="简体中文">简</button>
+        <button data-lang="zh-Hant" title="繁體中文">繁</button>
+        <button data-lang="pt" title="Português">PT</button>
+        <button data-lang="en" title="English">EN</button>
+      </div>
+      <div class="hero-flag"></div>
+      <h1 data-noi18n>巴西<span class="br">制霸</span>地图</h1>
+      <p class="hero-sub">记录你走过的每一寸巴西，看看你制霸了几个州？</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="num">27</div><div class="lbl">州市</div></div>
+        <div class="hero-stat"><div class="num">10</div><div class="lbl">等级</div></div>
+        <div class="hero-stat"><div class="num">∞</div><div class="lbl">回忆</div></div>
+      </div>
+      <div class="hero-cta">
+        <mdui-button id="btnCreate" variant="filled">
+          <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          建立我的地图
+        </mdui-button>
+        <mdui-button id="btnLoad" variant="tonal">
+          <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          查看已有地图
+        </mdui-button>
+      </div>
+      <div id="continueCard" class="continue-card hidden">
+        <div class="cc-info">
+          <div class="cc-title" id="ccName">—</div>
+          <div class="cc-meta" id="ccMeta">—</div>
+        </div>
+        <mdui-button id="btnContinue" variant="filled">进入地图</mdui-button>
+        <mdui-button id="btnSwitch" variant="text">切换</mdui-button>
+      </div>
+    </section>
+
+    <section class="section" id="sec-how">
+      <div class="section-head">
+        <h2>操作说明</h2><span class="en">HOW IT WORKS</span>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body">
+          <div class="step-title">建立你的制霸地图</div>
+          <div class="step-desc">填写地图名称与编辑密码（可留空），系统会生成一组专属识别码。纯静态版没有云端：识别码与密码都只存在这台设备的浏览器里，无法重设，建议截图备份。</div>
+        </div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body">
+          <div class="step-title">点选州，认识巴西</div>
+          <div class="step-desc">在地图上点选各州，右侧面板会显示在地美食、景点与节庆介绍。</div>
+        </div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body">
+          <div class="step-title">记录每一趟旅程</div>
+          <div class="step-desc">为每次造访选择「途经／游玩／住宿／长居」，可填写日期、评分与心得，并勾选在该州达成的特殊成就。</div>
+        </div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body">
+          <div class="step-title">累积分数、升级等级</div>
+          <div class="step-desc">造访层级越高，得分越多；同州重复造访、地区全制霸与特殊成就，都能带来额外加分。</div>
+        </div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body">
+          <div class="step-title">分享制霸战报</div>
+          <div class="step-desc">点击顶栏的战报按钮，产生制霸战报文字、导出战报图片；也能导出资料档，带到另一台设备继续记录。</div>
+        </div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>计分说明</h2><span class="en">SCORING</span>
+      </div>
+      <div class="score-grid">
+        <div class="score-card"><div class="sc-type">途经 <span class="pts">+2<small> 分</small></span></div><div class="sc-desc">途经、转乘</div></div>
+        <div class="score-card"><div class="sc-type">游玩 <span class="pts">+5<small> 分</small></span></div><div class="sc-desc">观光、一日游</div></div>
+        <div class="score-card"><div class="sc-type">住宿 <span class="pts">+10<small> 分</small></span></div><div class="sc-desc">过夜住宿</div></div>
+        <div class="score-card"><div class="sc-type">长居 <span class="pts">+20<small> 分</small></span></div><div class="sc-desc">长期居住</div></div>
+        <div class="score-card"><div class="sc-type">重复造访 <span class="pts">再+2<small> 分</small></span></div><div class="sc-desc">同一州多次造访</div></div>
+      </div>
+      <div class="score-foot">每个州只要有一笔旅程就会计分，造访层级越高、加分越多。该地区全部州皆造访可获「地区制霸」加成，全数「住宿」以上再加成；特殊成就另行加分。同一州计分以最高造访层级为准。</div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>特殊成就</h2><span class="en">ACHIEVEMENTS</span>
+        <div class="appbar-spacer"></div>
+        <mdui-button id="btnAchTeaser" variant="text">查看全部成就</mdui-button>
+      </div>
+      <div class="ach-teaser">
+        <div class="ach-card"><div class="ic">💦</div><div class="ac-body"><div class="ac-name">伊瓜苏瀑布</div><div class="ac-pts">+15 分 <span>· 巴拉那州</span></div></div></div>
+        <div class="ach-card"><div class="ic">🎭</div><div class="ac-body"><div class="ac-name">里约狂欢节</div><div class="ac-pts">+20 分 <span>· 里约热内卢</span></div></div></div>
+        <div class="ach-card"><div class="ic">🌴</div><div class="ac-body"><div class="ac-name">亚马孙雨林之心</div><div class="ac-pts">+20 分 <span>· 亚马孙州</span></div></div></div>
+        <div class="ach-card"><div class="ic">🐆</div><div class="ac-body"><div class="ac-name">潘塔纳尔湿地</div><div class="ac-pts">+18 分 <span>· 马托格罗索双州</span></div></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>完整功能</h2><span class="en">FEATURES</span>
+      </div>
+      <div class="roadmap">
+        <div class="rm-card"><div class="rm-ic">⭐</div><h3>州币评分</h3><p>为每个州加上你的主观评价</p><mdui-button class="rm-btn" variant="tonal" data-go="map">进入地图评分</mdui-button></div>
+        <div class="rm-card"><div class="rm-ic">💬</div><h3>旅游建议</h3><p>依你的足迹推荐下一趟旅程</p><mdui-button id="btnSuggestTeaser" variant="tonal">查看建议</mdui-button></div>
+        <div class="rm-card"><div class="rm-ic">📷</div><h3>上传照片</h3><p>把旅途照片挂到地图上（仅存本机）</p><mdui-button class="rm-btn" variant="tonal" data-go="map">进入地图上传</mdui-button></div>
+        <div class="rm-card"><div class="rm-ic">🏆</div><h3>好友排行</h3><p>汇入好友资料档，本机比拼制霸进度</p><mdui-button id="btnFriendsTeaser" variant="tonal">打开排行</mdui-button></div>
+      </div>
+    </section>
+
+    <footer style="max-width:1000px;margin:64px auto 0;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-faint);text-align:center;line-height:2">
+      巴西制霸地图 · 纯静态版 — 所有资料仅存于本机浏览器（localStorage），不提供云端存储服务。<br>
+      巴西州界 © IBGE（GeoJSON）· 地图渲染 Leaflet · 界面 MDUI 2
+    </footer>
+  </div>
+
+  <!-- ============================================================
+       地图视图
+       ============================================================ -->
+  <div id="view-map" class="hidden">
+    <div id="levelStrip" class="hidden" style="grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:8px 16px;background:#fff;border-bottom:1px solid var(--line);cursor:pointer" data-i18n-title="查看制霸战报" title="查看制霸战报">
+      <span style="font-size:13px;font-weight:700;white-space:nowrap" id="lsLevel">—</span>
+      <mdui-linear-progress id="levelProgress" value="0" style="flex:1"></mdui-linear-progress>
+      <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap" id="lsNext">—</span>
+    </div>
+    <div class="map-wrap" id="mapWrap">
+      <div class="pref-search" id="prefSearchWrap">
+        <div class="ps-bar">
+          <button type="button" class="ps-toggle" id="psToggle" data-i18n-title="搜索州" title="搜索州" aria-label="搜索州">
+            <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          </button>
+          <input id="prefSearch" placeholder="搜索州（中文／葡语／地区）" autocomplete="off" aria-label="搜索州">
+          <mdui-button-icon id="psClear" data-i18n-title="清除" title="清除" style="display:none">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </mdui-button-icon>
+        </div>
+        <div class="pref-search-drop hidden" id="prefSearchDrop"></div>
+      </div>
+      <div class="map-hint">点选州查看介绍 · 滚轮缩放 / 拖曳移动</div>
+      <div id="map"></div>
+      <div class="map-legend">
+        <div class="lg-title">造访层级</div>
+        <div class="lg-row"><span class="sw" style="background:#EFEBE2"></span>未造访</div>
+        <div class="lg-row"><span class="sw" style="background:#CBE8D4"></span>途经 +2</div>
+        <div class="lg-row"><span class="sw" style="background:#8FD0A6"></span>游玩 +5</div>
+        <div class="lg-row"><span class="sw" style="background:#4FA876"></span>住宿 +10</div>
+        <div class="lg-row"><span class="sw" style="background:#0A7A3D"></span>长居 +20</div>
+      </div>
+    </div>
+    <aside class="panel-wrap" id="panelWrap">
+      <div class="panel-empty" id="panelEmpty">
+        <svg viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div>点选地图上的州，<br>查看在地美食、景点与节庆，并记录你的旅程。</div>
+        <mdui-button id="btnRandom" variant="tonal" style="margin-top:14px">
+          <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+          随机探索
+        </mdui-button>
+      </div>
+      <div id="panelContent" class="hidden">
+        <div class="panel-head" id="panelHead">
+          <div class="ph-region"><mdui-chip id="pRegion" variant="assist">—</mdui-chip></div>
+          <h3><span id="pNamePt">—</span><span class="zh" id="pNameZh">—</span></h3>
+          <p class="panel-tagline" id="pTagline"></p>
+          <div class="panel-stats">
+            <div class="ps-pill">最佳层级 <b id="pBest">—</b></div>
+            <div class="ps-pill">本站得分 <b class="pts" id="pPts">0</b> 分</div>
+            <div class="ps-pill">纪录 <b id="pCount">0</b> 笔</div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="p-section"><h4>在地美食</h4><div class="chip-row" id="pFood"></div></div>
+          <div class="p-section"><h4>名所景点</h4><div class="chip-row" id="pSpots"></div></div>
+          <div class="p-section"><h4>节庆行事</h4><div class="chip-row" id="pMatsuri"></div></div>
+          <div class="p-section">
+            <h4>州币评分 <mdui-button id="btnWishToggle" variant="tonal" size="small" style="margin-left:8px">☆ 想去</mdui-button></h4>
+            <div class="pf-rate">
+              <div class="rate-stars" id="rateStars"></div>
+              <span class="rate-note" id="rateNote"></span>
+            </div>
+          </div>
+          <div class="p-section">
+            <h4>旅途照片 <span class="pf-photo-tag">仅存本机 · 不随资料档导出</span></h4>
+            <div class="pf-photos" id="pfPhotos"></div>
+            <input type="file" id="photoInput" accept="image/*" class="hidden">
+          </div>
+          <div class="p-section"><h4>旅程记录 <button type="button" class="clear-pref-btn" id="btnClearPref">清除此州</button></h4><div id="pRecords"></div></div>
+        </div>
+        <div class="panel-footer">
+          <div class="pf-lock hidden" id="pLockHint">已锁定编辑 — 点击顶栏锁头解锁后才能记录旅程</div>
+          <mdui-button id="btnAddRecord" variant="filled" style="width:100%">
+            <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            新增旅程
+          </mdui-button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>

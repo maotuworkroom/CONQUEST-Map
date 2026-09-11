@@ -1,0 +1,722 @@
+<script>
+/* ============================================================
+   多语言核心（源语言：简体中文）
+   ============================================================ */
+const LANG_KEY = 'brazilMap.lang';
+const LANGS = ['zh-Hans','zh-Hant','pt','en'];
+let LANG = 'zh-Hans';
+try{ const saved = localStorage.getItem(LANG_KEY); if(LANGS.includes(saved)) LANG = saved; }catch(e){}
+const I18N = {};
+function t(s){
+  if(!s) return s;
+  const m = I18N[LANG];
+  if(m && m[s] !== undefined) return m[s];
+  if(LANG === 'zh-Hant') return toTraditional(s);
+  return s;
+}
+function toTraditional(s){
+  return String(s).replace(/[\u4e00-\u9fff“”‘’]/g, ch => S2T[ch] || ch);
+}
+function prefName(id){
+  const p = PROVINCES[id];
+  if(!p) return '';
+  if(LANG === 'pt' || LANG === 'en') return p.pt;
+  return t(p.zh);
+}
+function applyStaticText(){
+  const skip = n => n.nodeName === 'SCRIPT' || n.nodeName === 'STYLE' || (n.hasAttribute && n.hasAttribute('data-noi18n'));
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode(n){
+      const p = n.parentNode;
+      if(!p || skip(p)) return NodeFilter.FILTER_REJECT;
+      return n.data.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    }
+  });
+  const nodes = [];
+  while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n => {
+    if(!n.__orig){ try{ n.__orig = n.data; }catch(e){} }
+    if(n.__orig === undefined) return;
+    const raw = n.__orig, key = raw.trim ? raw.trim() : raw;
+    if(key && key !== raw){
+      const hit = I18N[LANG] && I18N[LANG][key];
+      if(hit !== undefined){ n.data = hit; return; }
+      if(LANG === 'zh-Hant'){ n.data = toTraditional(raw); return; }
+    }
+    n.data = t(raw);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.getAttribute('data-i18n-title')); });
+  document.querySelectorAll('mdui-text-field[label]').forEach(el => {
+    if(!el.__origLabel) el.__origLabel = el.getAttribute('label');
+    el.setAttribute('label', t(el.__origLabel));
+  });
+  document.querySelectorAll('input[placeholder]').forEach(el => {
+    if(!el.__origPh) el.__origPh = el.getAttribute('placeholder');
+    el.setAttribute('placeholder', t(el.__origPh));
+  });
+}
+function applyBrand(){
+  const brand = document.querySelector('.brand-name');
+  const hero = document.querySelector('.hero h1');
+  if(!brand || !hero) return;
+  if(LANG === 'pt'){
+    brand.innerHTML = 'Mapa de <b>Conquista</b> do Brasil';
+    hero.innerHTML = 'Mapa de <span class="br">Conquista</span> do Brasil';
+  }else if(LANG === 'en'){
+    brand.innerHTML = '<b>Brazil</b> Conquest Map';
+    hero.innerHTML = '<b>Brazil</b> Conquest Map';
+  }else if(LANG === 'zh-Hant'){
+    brand.innerHTML = '巴西<b>制霸</b>地圖';
+    hero.innerHTML = '巴西<span class="br">制霸</span>地圖';
+  }else{
+    brand.innerHTML = '巴西<b>制霸</b>地图';
+    hero.innerHTML = '巴西<span class="br">制霸</span>地图';
+  }
+}
+function applyLang(){
+  try{ localStorage.setItem(LANG_KEY, LANG); }catch(e){}
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('#langSwitch button').forEach(b => b.classList.toggle('active', b.dataset.lang === LANG));
+  applyBrand();
+  applyStaticText();
+  if(curCode && curScore && typeof renderAppBar === 'function') renderAppBar();
+  if(curCode && curScore && typeof renderLevelStrip === 'function') renderLevelStrip();
+  if(typeof renderLocalMaps === 'function') renderLocalMaps();
+  if(selectedId != null && curData) renderPanel(selectedId);
+  if(curData){
+    if($('dlgWish').open) renderWishDialog();
+    if($('dlgReport').open) renderReport();
+    if($('dlgAch').open) renderAchDialog();
+    if($('dlgSuggest').open) renderSuggestDialog();
+    if($('dlgFriends').open) renderFriendsDialog();
+  }
+}
+
+/* ============================================================
+   储存层
+   ============================================================ */
+const STORE = 'brazilMap.';
+const VERSION = '1.0';
+const COOKIE = '_brazil_conquest_last';
+const CODE_NS = 'BRA';
+const CODE_LEN = 4;
+const PREFS_ALL = Object.keys(PROVINCES).map(Number);
+
+let curCode = null;
+let curData = null;
+let curScore = null;
+let curUnlock = false;
+let selectedId = null;
+
+const $ = s => document.getElementById(String(s).replace(/^#/, ''));
+function genCode(){
+  const cs = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for(let i=0;i<CODE_LEN;i++) s += cs[Math.floor(Math.random()*cs.length)];
+  return CODE_NS + '-' + s;
+}
+function readLocalMaps(){
+  try{
+    const raw = localStorage.getItem(STORE + 'list');
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function saveLocalMaps(list){
+  try{ localStorage.setItem(STORE + 'list', JSON.stringify(list)); }catch(e){}
+}
+function readMap(code){
+  if(!code) return null;
+  try{ return JSON.parse(localStorage.getItem(STORE + code)); }catch(e){ return null; }
+}
+function writeMap(data){
+  try{ localStorage.setItem(STORE + data.code, JSON.stringify(data)); }catch(e){}
+}
+function removeMap(code){
+  try{ localStorage.removeItem(STORE + code); }catch(e){}
+}
+function setLast(code){
+  try{ localStorage.setItem(COOKIE, code); }catch(e){}
+}
+function getLast(){
+  try{ return localStorage.getItem(COOKIE); }catch(e){ return null; }
+}
+function showSnack(msg){
+  try{
+    const s = document.createElement('mdui-snackbar');
+    s.message = msg;
+    s.timeout = 2400;
+    document.body.appendChild(s);
+    s.open = true;
+    setTimeout(() => { try{ s.remove(); }catch(e){} }, 3200);
+  }catch(e){ alert(msg); }
+}
+function getPrefs(data){ return (data && data.prefs) || {}; }
+function getWish(data){ return (data && data.wish) || {}; }
+function getRecords(prefs, pid){ return (prefs[pid] && prefs[pid].records) || []; }
+function getRating(prefs, pid){ return (prefs[pid] && prefs[pid].rating) || 0; }
+function getPhotos(prefs, pid){ return (prefs[pid] && prefs[pid].photos) || []; }
+function getTag(prefs, pid){ return (prefs[pid] && prefs[pid].tag) || null; }
+function getMaxType(recs){
+  let m = 0;
+  (recs||[]).forEach(r => { if(r.type > m) m = r.type; });
+  return m;
+}
+function getAch(data){ return (data && data.ach) || {}; }
+function getAchList(data){ return Object.keys(getAch(data)).filter(k => getAch(data)[k]); }
+
+/* ============================================================
+   计分
+   ============================================================ */
+function maxAchScore(){
+  return ACH.reduce((s,a) => s + a.pts, 0);
+}
+function achSatisfied(a, prefsBy, achSel){
+  if(a.kind === 'manual') return false;
+  if(a.kind === 'count'){
+    let n = 0;
+    (a.prefs||[]).forEach(pid => {
+      if((prefsBy[pid]||0) >= (a.level||1)) n++;
+    });
+    return n >= (a.n||0);
+  }
+  // groups：单组「全部州都达到层级」
+  const need = (a.groups && a.groups[0]) || [];
+  return need.every(pid => (prefsBy[pid]||0) >= a.groups[1]);
+}
+function computeScore(data){
+  const prefs = getPrefs(data);
+  const prefsBy = {};
+  let achBonus = 0, regionBonus = 0, total = 0, maxScore = 0, achCnt = 0;
+  const types = {1:0,2:0,3:0,4:0};
+  const achGot = {};
+  PREFS_ALL.forEach(pid => {
+    const recs = getRecords(prefs, pid);
+    const mt = getMaxType(recs);
+    if(mt > 0){
+      prefsBy[pid] = mt;
+      if(types[mt] !== undefined) types[mt]++;
+      let p = 0;
+      if(mt >= 1) p = 2;
+      if(mt >= 2) p = 5;
+      if(mt >= 3) p = 10;
+      if(mt >= 4) p = 20;
+      total += p;
+      if(getRating(prefs, pid) >= 4) total += 2;
+      if(recs.length > 1) total += (recs.length - 1) * 2;
+    }
+    maxScore += 20 + 2;
+  });
+  // 地区加成
+  Object.keys(REGIONS).forEach(k => {
+    const ids = REGIONS[k].ids;
+    const all = ids.every(id => prefsBy[id] >= 1);
+    const allStay = ids.every(id => prefsBy[id] >= 3);
+    if(allStay){ regionBonus += 25; }
+    else if(all){ regionBonus += 10; }
+  });
+  // 成就
+  const achSel = getAchList(data);
+  ACH.forEach(a => {
+    const sel = a.kind === 'manual' ? achSel.includes(a.id) : achSatisfied(a, prefsBy, achSel);
+    if(sel){
+      achGot[a.id] = true;
+      achBonus += a.pts;
+      achCnt++;
+    }
+  });
+  total += regionBonus + achBonus;
+  // 等级
+  let level = 1;
+  for(let i=0;i<LEVELS.length;i++){
+    if(total >= LEVELS[i].pts) level = i+1;
+  }
+  const cur = LEVELS[level-1];
+  const nxt = LEVELS[level] || null;
+  const pct = nxt ? Math.min(100, Math.round((total - cur.pts) / (nxt.pts - cur.pts) * 100)) : 100;
+  const maxPts = LEVELS[LEVELS.length-1].pts;
+  return {
+    prefs, prefsBy, total, maxScore, types, ach:achGot, achCnt, achBonus, regionBonus,
+    level: { i: level, name: cur.name, icon: cur.icon, pts: cur.pts, pct: cur.pct, score: total, scoreNext: nxt ? nxt.pts : null },
+    maxPts
+  };
+}
+
+/* ============================================================
+   顶层 UI
+   ============================================================ */
+function renderAppBar(){
+  const $s = $('appScore'), $l = $('appLevel');
+  if($s){ $s.textContent = curScore ? curScore.total : 0; $s.classList.add('appbar-pop'); setTimeout(()=>$s.classList.remove('appbar-pop'), 460); }
+  if($l) $l.textContent = curScore ? t(LEVELS[curScore.level.i-1].name) : '—';
+}
+function renderLevelStrip(){
+  const strip = $('#levelStrip');
+  if(!strip) return;
+  if(!curCode || !curScore){ strip.classList.add('hidden'); return; }
+  strip.classList.remove('hidden');
+  const lv = curScore.level;
+  $('#lsLevel').textContent = lv.icon + ' ' + t(lv.name);
+  const prog = $('#levelProgress');
+  prog.value = lv.scoreNext === null ? 100 : Math.round((lv.score - lv.pts) / (lv.scoreNext - lv.pts) * 100);
+  $('#lsNext').textContent = lv.scoreNext === null ? t('已达最高等级') : `${t('下一级')} ${t(LEVELS[lv.i].name)} · ${lv.score} / ${lv.scoreNext} ${t('分')}`;
+}
+function enterMap(){
+  $('#view-home').classList.add('hidden');
+  $('#view-map').classList.remove('hidden');
+  $('#appbar').classList.remove('hidden');
+  if(curScore) renderLevelStrip();
+  initMapIfNeeded();
+  if(curScore) setTimeout(() => updateMapStyle(), 60);
+  if(selectedId != null) setTimeout(() => flyToPref(selectedId), 120);
+}
+function goHome(){
+  $('#view-map').classList.add('hidden');
+  $('#view-home').classList.remove('hidden');
+  renderLocalMaps();
+}
+function loadMap(code, noStore){
+  curCode = code;
+  curData = readMap(code);
+  if(!curData) return false;
+  curScore = computeScore(curData);
+  curUnlock = false;
+  renderAppBar();
+  if(selectedId != null && selectedId !== 0 && typeof renderPanel === 'function') renderPanel(selectedId);
+  if(!noStore) setLast(code);
+  if(typeof updateMapStyle === 'function') setTimeout(updateMapStyle, 60);
+  if(typeof renderLevelStrip === 'function') renderLevelStrip();
+  return true;
+}
+
+/* ============================================================
+   地图（Leaflet + 内嵌巴西州界）
+   ============================================================ */
+let map = null, geoLayer = null, labelsLayer = null;
+let LABEL_MAJOR = new Set([1,5,8,10,13,16,20,21,23,24,25,26,27]);
+function initMapIfNeeded(){
+  if(!window.BRAZIL_GEOJSON || map) return;
+  map = L.map('map', { zoomControl:false, attributionControl:false, minZoom:3, maxZoom:9 });
+  map.createPane('labels');
+  map.getPane('labels').style.zIndex = 480;
+  labelsLayer = L.layerGroup().addTo(map);
+  geoLayer = L.geoJSON(window.BRAZIL_GEOJSON, {
+    style: f => {
+      const pid = f.properties.id;
+      const mt = curScore && curScore.prefsBy[pid] || 0;
+      return {
+        fillColor: mt > 0 ? TYPE_COLOR[mt] : '#EFEBE2',
+        fillOpacity: mt > 0 ? .82 : 1,
+        color: '#FFFFFF', weight: 1.1, opacity: 1
+      };
+    },
+    onEachFeature: (f, layer) => {
+      const pid = f.properties.id;
+      const p = PROVINCES[pid];
+      if(!p) return;
+      layer.on('click', () => selectPref(pid));
+      layer.on('mouseover', () => {
+        const mt = curScore && curScore.prefsBy[pid] || 0;
+        layer.bindTooltip(`${p.pt} · ${mt > 0 ? t(TYPE_NAME[mt]) : t('未造访')}`, { direction:'top', className:'pref-hover-tip', offset:[0,-8] }).openTooltip();
+      });
+      layer.on('mouseout', () => { try{ layer.unbindTooltip(); }catch(e){} });
+      if(LABEL_MAJOR.has(pid)){
+        L.tooltip({ permanent:true, direction:'center', className:'pref-label', interactive:false })
+          .setLatLng(layer.getBounds().getCenter()).setContent(p.pt)
+          .addTo(labelsLayer);
+      }
+    }
+  }).addTo(map);
+  const b = window.BRAZIL_GEOJSON.features.reduce((acc, f) => {
+    const bb = L.geoJSON(f).getBounds();
+    return acc ? acc.extend(bb) : bb;
+  }, null);
+  if(b) map.fitBounds(b, { padding:[36,36] });
+}
+function pathElOf(pid){
+  if(!geoLayer) return null;
+  let out = null;
+  geoLayer.eachLayer(l => {
+    const f = l.feature;
+    if(f && f.properties.id === pid) out = l;
+  });
+  return out;
+}
+function updateMapStyle(){
+  if(!geoLayer || !curScore) return;
+  geoLayer.eachLayer(l => {
+    const f = l.feature;
+    if(!f || !f.properties) return;
+    const pid = f.properties.id;
+    const mt = curScore.prefsBy[pid] || 0;
+    l.setStyle({
+      fillColor: mt > 0 ? TYPE_COLOR[mt] : '#EFEBE2',
+      fillOpacity: mt > 0 ? .82 : 1
+    });
+    if(pid === selectedId){ l.setStyle({ color:'#C9A227', weight:2.6 }); }
+    else { l.setStyle({ color:'#FFFFFF', weight:1.1 }); }
+  });
+}
+function selectPref(pid, silent){
+  selectedId = pid;
+  if(geoLayer){
+    updateMapStyle();
+    const el = pathElOf(pid);
+    if(el && el.getElement()){
+      const g = el.getElement();
+      g.classList.remove('flash');
+      void g.offsetWidth;
+      g.classList.add('flash');
+    }
+  }
+  renderPanel(pid);
+  if(!silent){
+    flyToPref(pid);
+  }
+}
+function flyToPref(pid){
+  if(!map || !geoLayer) return;
+  const l = pathElOf(pid);
+  if(!l) return;
+  const bb = l.getBounds();
+  map.flyToBounds(bb, { padding:[40,60], maxZoom:6, duration:.8 });
+}
+function scorePopAt(pid, gain){
+  if(!map) return;
+  const l = pathElOf(pid);
+  if(!l) return;
+  const pt = map.latLngToContainerPoint(l.getBounds().getCenter());
+  const el = document.createElement('div');
+  el.className = 'score-pop';
+  el.textContent = '+' + gain;
+  el.style.left = (pt.x - 26) + 'px';
+  el.style.top = (pt.y - 30) + 'px';
+  document.querySelector('#mapWrap').appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+/* ============================================================
+   侧栏
+   ============================================================ */
+function renderPanel(pid){
+  if(!curData || !curScore) return;
+  const p = PROVINCES[pid];
+  if(!p) return;
+  $('#panelEmpty').classList.add('hidden');
+  $('#panelContent').classList.remove('hidden');
+  const prefs = getPrefs(curData);
+  const recs = getRecords(prefs, pid);
+  const mt = getMaxType(recs);
+  const rating = getRating(prefs, pid);
+  const photos = getPhotos(prefs, pid);
+  const tag = getTag(prefs, pid);
+  // 头部
+  $('#pRegion').textContent = t(REGIONS[p.region].name);
+  $('#pNamePt').textContent = p.pt;
+  $('#pNameZh').textContent = prefName(pid);
+  $('#pNameZh').style.display = (LANG === 'pt' || LANG === 'en') ? 'none' : '';
+  $('#pTagline').textContent = t(p.tagline);
+  $('#pBest').textContent = mt > 0 ? t(TYPE_NAME[mt]) : t('未造访');
+  $('#pPts').textContent = curScore.prefsBy[pid] ? (
+    (curScore.prefsBy[pid] >= 1 ? 2 : 0) + (curScore.prefsBy[pid] >= 2 ? 3 : 0) + (curScore.prefsBy[pid] >= 3 ? 5 : 0) + (curScore.prefsBy[pid] >= 4 ? 10 : 0)
+  ) : 0;
+  $('#pCount').textContent = recs.length;
+  const head = $('#panelHead');
+  const img = `assets/prefs/${String(pid).padStart(2,'0')}.jpg`;
+  head.classList.remove('has-photo');
+  head.style.backgroundImage = '';
+  const probe = new Image();
+  probe.onload = () => {
+    if(selectedId === pid){
+      head.classList.add('has-photo');
+      head.style.backgroundImage = `url(${img})`;
+    }
+  };
+  probe.onerror = () => {};
+  probe.src = img;
+  // 美食/景点/节庆
+  const chip = list => (list||[]).map(x => `<mdui-chip variant="assist">${t(x)}</mdui-chip>`).join('');
+  $('#pFood').innerHTML = chip(p.food);
+  $('#pSpots').innerHTML = chip(p.spots);
+  $('#pMatsuri').innerHTML = chip(p.matsuri);
+  // 评分
+  renderRating(pid, rating);
+  // 想去
+  const wish = getWish(curData);
+  const wishBtn = $('#btnWishToggle');
+  wishBtn.textContent = wish[pid] ? '★ ' + t('已想去') : '☆ ' + t('想去');
+  wishBtn.variant = wish[pid] ? 'filled' : 'tonal';
+  // 照片
+  renderPhotos(pid, photos);
+  // 旅程记录
+  renderRecords(pid, recs);
+  // 锁定提示
+  $('#pLockHint').classList.toggle('hidden', curUnlock);
+  const addBtn = $('#btnAddRecord');
+  addBtn.classList.toggle('locked', !curUnlock);
+}
+function renderRating(pid, rating){
+  const box = $('#rateStars');
+  box.innerHTML = '';
+  for(let i=1;i<=5;i++){
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'rate-star' + (i <= rating ? ' on' : '') + (!curUnlock ? ' locked' : '');
+    b.textContent = '★';
+    b.dataset.v = i;
+    b.addEventListener('click', () => {
+      if(!curUnlock){ showSnack(t('已锁定编辑')); return; }
+      const prefs = getPrefs(curData);
+      const v = parseInt(b.dataset.v, 10);
+      if(!prefs[pid]) prefs[pid] = { records:[] };
+      if(prefs[pid].rating === v) delete prefs[pid].rating;
+      else prefs[pid].rating = v;
+      writeMap(curData);
+      curScore = computeScore(curData);
+      renderAppBar();
+      renderPanel(pid);
+      renderLevelStrip();
+      if(typeof updateMapStyle === 'function') updateMapStyle();
+      showSnack(v ? `${t('已评价')} ${'★'.repeat(v)}` : t('已清除评分'));
+    });
+    box.appendChild(b);
+  }
+  $('#rateNote').textContent = rating ? '★★★★★'.slice(0,rating) + '☆'.repeat(5-rating) + ' · ' + rating + '/5' : t('尚未评分');
+}
+function renderPhotos(pid, photos){
+  const box = $('#pfPhotos');
+  box.innerHTML = '';
+  photos.forEach((ph, i) => {
+    const d = document.createElement('div');
+    d.className = 'pf-photo';
+    const img = document.createElement('img');
+    img.src = ph.data;
+    img.alt = '';
+    img.addEventListener('click', () => openPhotoBig(ph.data));
+    const del = document.createElement('button');
+    del.className = 'pf-del';
+    del.textContent = '×';
+    del.title = t('删除');
+    del.addEventListener('click', e => {
+      e.stopPropagation();
+      if(!curUnlock){ showSnack(t('已锁定编辑')); return; }
+      const prefs = getPrefs(curData);
+      prefs[pid].photos.splice(i,1);
+      writeMap(curData);
+      curScore = computeScore(curData);
+      renderPanel(pid);
+      showSnack(t('已删除照片'));
+    });
+    d.appendChild(img); d.appendChild(del);
+    box.appendChild(d);
+  });
+  const add = document.createElement('button');
+  add.className = 'pf-add';
+  add.type = 'button';
+  add.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>上传';
+  add.addEventListener('click', () => {
+    if(!curUnlock){ showSnack(t('已锁定编辑')); return; }
+    $('#photoInput').click();
+  });
+  box.appendChild(add);
+  $('#photoInput').onchange = e => {
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    if(!/^image\//.test(file.type)){ showSnack(t('请选择图片文件')); return; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 900;
+        let w = img.width, h = img.height;
+        if(Math.max(w,h) > MAX){ const k = MAX/Math.max(w,h); w = Math.round(w*k); h = Math.round(h*k); }
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        const data = cv.toDataURL('image/jpeg', .82);
+        const prefs = getPrefs(curData);
+        if(!prefs[pid]) prefs[pid] = { records:[] };
+        if(!prefs[pid].photos) prefs[pid].photos = [];
+        prefs[pid].photos.push({ data, at: Date.now() });
+        writeMap(curData);
+        renderPanel(pid);
+        showSnack(t('已上传照片'));
+      };
+      img.onerror = () => showSnack(t('图片读取失败'));
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+}
+function openPhotoBig(data){
+  $('#photoBigWrap').innerHTML = `<img src="${data}" alt="photo">`;
+  $('dlgPhoto').open = true;
+}
+function renderRecords(pid, recs){
+  const box = $('#pRecords');
+  if(!recs.length){
+    box.innerHTML = `<div class="record-empty">${t('尚未新增任何旅程')}</div>`;
+    return;
+  }
+  box.innerHTML = recs.map((r, i) => {
+    const stars = r.rating ? '★'.repeat(r.rating) + '☆'.repeat(5-r.rating) : '';
+    return `<div class="record-row" data-i="${i}">
+      <div class="rr-top">
+        <span class="rr-type" style="background:${TYPE_COLOR[r.type]}">${t(TYPE_NAME[r.type])}</span>
+        <span class="rr-date">${r.date}</span>
+        ${stars ? `<span class="rr-stars">${stars}</span>` : ''}
+      </div>
+      ${r.note ? `<div class="rr-note">${escapeHtml(r.note)}</div>` : ''}
+      ${r.ach && r.ach.length ? `<div style="font-size:11.5px;color:var(--ink-faint);margin-top:6px">${t('成就')}：${r.ach.map(a => t((ACH.find(x=>x.id===a)||{}).name||a)).join(' · ')}</div>` : ''}
+      <span class="rr-edit-hint">${t('点按编辑')}</span>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('.record-row').forEach(row => {
+    row.addEventListener('click', () => {
+      if(!curUnlock){ showSnack(t('已锁定编辑')); return; }
+      const i = parseInt(row.dataset.i, 10);
+      openRecordDialog(pid, i);
+    });
+  });
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ============================================================
+   搜索
+   ============================================================ */
+function renderSearchResults(q){
+  const drop = $('#prefSearchDrop');
+  const qq = q.trim().toLowerCase();
+  if(!qq){ drop.classList.add('hidden'); drop.innerHTML = ''; return; }
+  const hits = PREFS_ALL.filter(pid => {
+    const p = PROVINCES[pid];
+    return p.zh.toLowerCase().includes(qq) ||
+      p.pt.toLowerCase().includes(qq) ||
+      t(REGIONS[p.region].name).toLowerCase().includes(qq);
+  });
+  if(!hits.length){
+    drop.innerHTML = `<div class="ps-empty">${t('找不到相符的州')}</div>`;
+    drop.classList.remove('hidden');
+    return;
+  }
+  drop.innerHTML = hits.slice(0,10).map(pid => {
+    const p = PROVINCES[pid];
+    return `<button type="button" class="ps-item" data-id="${pid}">
+      <span class="ps-zh">${p.zh}</span>
+      <span class="ps-pt">${p.pt}</span>
+      <span class="ps-reg">${t(REGIONS[p.region].name)}</span>
+    </button>`;
+  }).join('');
+  drop.classList.remove('hidden');
+  drop.querySelectorAll('.ps-item').forEach(b => {
+    b.addEventListener('click', () => {
+      const pid = parseInt(b.dataset.id, 10);
+      selectPref(pid);
+      $('#prefSearch').value = '';
+      renderSearchResults('');
+      if(window.innerWidth < 981 && $('#prefSearchWrap').classList.contains('open')){
+        $('#prefSearchWrap').classList.remove('open');
+      }
+    });
+  });
+}
+
+/* ============================================================
+   旅程对话框
+   ============================================================ */
+let recEditPid = null, recEditIdx = null, recSelAch = [];
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function openRecordDialog(pid, idx){
+  recEditPid = pid;
+  recEditIdx = idx === undefined ? null : idx;
+  const p = PROVINCES[pid];
+  $('#recTitle').textContent = `${prefName(pid)}（${p.pt}）· ${t('记录旅程')}`;
+  const recs = getRecords(getPrefs(curData), pid);
+  const rec = idx != null ? recs[idx] : null;
+  const rg = $('#recType');
+  rg.value = rec ? String(rec.type) : '2';
+  const dt = $('#recDate');
+  dt.value = rec ? rec.date : todayStr();
+  const sl = $('#recRating');
+  sl.value = rec && rec.rating ? rec.rating : 4;
+  $('#recRatingVal').textContent = rec && rec.rating ? '★'.repeat(rec.rating) : '★★★★☆';
+  const note = $('#recNote');
+  note.value = rec ? (rec.note || '') : '';
+  recSelAch = rec && rec.ach ? rec.ach.slice() : [];
+  renderRecAch(pid);
+  $('dlgRecord').open = true;
+}
+function renderRecAch(pid){
+  const field = $('#recAchField');
+  const prefsBy = curScore.prefsBy;
+  const candidates = ACH.filter(a => {
+    if(a.kind === 'manual') return false;
+    if(a.kind === 'count') return (a.prefs||[]).includes(pid);
+    return (a.groups && a.groups[0] || []).includes(pid);
+  });
+  if(!candidates.length){ field.classList.add('hidden'); return; }
+  field.classList.remove('hidden');
+  $('#recAch').innerHTML = candidates.map(a => {
+    const can = achSatisfied(a, prefsBy, []);
+    return `<label class="ach-check">
+      <input type="checkbox" value="${a.id}" ${recSelAch.includes(a.id) ? 'checked' : ''} ${can ? '' : 'disabled'}>
+      <span class="ac-ic">${a.icon}</span>
+      <span class="ac-t"><b>${t(a.name)}</b><span>${t(a.cond)}</span></span>
+      <span class="ac-p">+${a.pts}</span>
+    </label>`;
+  }).join('');
+  $('#recAch').querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if(cb.checked){ if(!recSelAch.includes(cb.value)) recSelAch.push(cb.value); }
+      else recSelAch = recSelAch.filter(v => v !== cb.value);
+    });
+  });
+}
+function saveRecord(){
+  if(recEditPid == null) return;
+  const pid = recEditPid;
+  const type = parseInt($('#recType').value, 10) || 2;
+  const date = $('#recDate').value || todayStr();
+  const rating = parseInt($('#recRating').value, 10) || 0;
+  const note = $('#recNote').value.trim().slice(0,300);
+  const prefs = getPrefs(curData);
+  if(!prefs[pid]) prefs[pid] = { records:[] };
+  if(!prefs[pid].records) prefs[pid].records = [];
+  const before = getMaxType(prefs[pid].records);
+  if(recEditIdx != null){
+    const r = prefs[pid].records[recEditIdx];
+    if(r){
+      r.type = type; r.date = date; r.rating = rating; r.note = note; r.ach = recSelAch.slice();
+    }
+  }else{
+    prefs[pid].records.push({ id:Date.now(), type, date, rating, note, ach:recSelAch.slice() });
+  }
+  const after = getMaxType(prefs[pid].records);
+  writeMap(curData);
+  const prevTotal = curScore.total;
+  const prevAch = Object.assign({}, curScore.ach);
+  curScore = computeScore(curData);
+  renderAppBar();
+  renderPanel(pid);
+  renderLevelStrip();
+  updateMapStyle();
+  const gain = curScore.total - prevTotal;
+  $('dlgRecord').open = false;
+  showSnack(t('已储存旅程'));
+  if(after > before){
+    scorePopAt(pid, '+'+TYPE_PTS[after]);
+  }else if(gain > 0){
+    scorePopAt(pid, '+'+gain);
+  }
+  if(gain > 0){
+    const newly = ACH.filter(a => curScore.ach[a.id] && !prevAch[a.id]);
+    newly.slice(0,3).forEach(a => {
+      setTimeout(() => showSnack(`${a.icon} ${t('解锁成就')}：${t(a.name)} +${a.pts} ${t('分')}`), 500);
+    });
+  }
+  recEditPid = null; recEditIdx = null;
+}
+</script>

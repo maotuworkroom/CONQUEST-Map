@@ -1,0 +1,218 @@
+<!-- ===== 对话框：建立地图 ===== -->
+<mdui-dialog id="dlgCreate" style="--dlg-w:420px">
+  <div class="dlg">
+    <h3>建立我的制霸地图</h3>
+    <div class="dlg-sub">为地图命名并设置编辑密码（可留空），系统会生成一组专属识别码。</div>
+    <div class="dlg-field">
+      <mdui-text-field id="cfName" variant="outlined" label="地图名称" maxlength="20" required style="width:100%"></mdui-text-field>
+      <div class="fl-hint">例：我的巴西大环线、萨尔瓦多周末</div>
+    </div>
+    <div class="dlg-field">
+      <mdui-text-field id="cfPass" variant="outlined" type="password" label="编辑密码（可留空）" style="width:100%"></mdui-text-field>
+    </div>
+    <div class="dlg-field">
+      <mdui-text-field id="cfPass2" variant="outlined" type="password" label="再次输入密码" style="width:100%"></mdui-text-field>
+    </div>
+    <div class="dlg-actions">
+      <mdui-button id="cfCancel" variant="text">取消</mdui-button>
+      <mdui-button id="cfSubmit" variant="filled">建立地图</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 对话框：载入地图 ===== -->
+<mdui-dialog id="dlgLoad" style="--dlg-w:420px">
+  <div class="dlg">
+    <h3>查看已有地图</h3>
+    <div class="dlg-sub">输入识别码开启这台设备上已建立的地图。</div>
+    <div class="dlg-field">
+      <mdui-text-field id="lfCode" variant="outlined" label="识别码　例：BRA-A3K9" style="width:100%"></mdui-text-field>
+      <div class="fl-hint">纯静态版没有云端服务器：识别码无法跨设备读取资料，只在本机生效。</div>
+    </div>
+    <div class="dlg-field">
+      <div class="fl-hint">本机已建立的地图（点选即开启）：</div>
+      <div id="localMaps" class="local-maps"></div>
+    </div>
+    <div class="dlg-field">
+      <mdui-button id="lfImport" variant="tonal" style="width:100%">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+        从资料档导入
+      </mdui-button>
+      <input type="file" id="importFile" accept="application/json,.json" class="hidden">
+    </div>
+    <div class="dlg-actions">
+      <mdui-button id="lfCancel" variant="text">取消</mdui-button>
+      <mdui-button id="lfSubmit" variant="filled">开启地图</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 对话框：解锁 ===== -->
+<mdui-dialog id="dlgUnlock" style="--dlg-w:400px">
+  <div class="dlg">
+    <h3>解锁编辑</h3>
+    <div class="dlg-sub">输入这张地图的编辑密码以解锁编辑功能。</div>
+    <div class="dlg-field">
+      <mdui-text-field id="ufPass" variant="outlined" type="password" label="编辑密码" style="width:100%"></mdui-text-field>
+    </div>
+    <div class="dlg-actions">
+      <mdui-button id="ufCancel" variant="text">取消</mdui-button>
+      <mdui-button id="ufSubmit" variant="filled">解锁</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 对话框：新增旅程 ===== -->
+<mdui-dialog id="dlgRecord" style="--dlg-w:520px">
+  <div class="dlg">
+    <h3>记录旅程</h3>
+    <div class="dlg-sub" id="recTitle">—</div>
+    <div class="dlg-field">
+      <span class="fl-label">造访层级 <span class="req">*</span></span>
+      <mdui-radio-group id="recType" value="2">
+        <mdui-radio value="1">途经 +2</mdui-radio>
+        <mdui-radio value="2">游玩 +5</mdui-radio>
+        <mdui-radio value="3">住宿 +10</mdui-radio>
+        <mdui-radio value="4">长居 +20</mdui-radio>
+      </mdui-radio-group>
+    </div>
+    <div class="dlg-field" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <span class="fl-label">日期</span>
+        <mdui-text-field id="recDate" variant="outlined" type="date" style="width:100%"></mdui-text-field>
+      </div>
+      <div>
+        <span class="fl-label">评分</span>
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 2px">
+          <mdui-slider id="recRating" min="0" max="5" step="1" value="4" style="flex:1"></mdui-slider>
+          <span style="font-weight:900;font-family:var(--serif);color:var(--gold);min-width:38px;text-align:center" id="recRatingVal">★★★★★</span>
+        </div>
+      </div>
+    </div>
+    <div class="dlg-field">
+      <span class="fl-label">心得</span>
+      <mdui-text-field id="recNote" variant="outlined" label="写点什么吧…" rows="3" maxlength="300" style="width:100%"></mdui-text-field>
+    </div>
+    <div class="dlg-field hidden" id="recAchField">
+      <span class="fl-label">在这一州达成的成就</span>
+      <div class="ach-list" id="recAch"></div>
+    </div>
+    <div class="dlg-actions">
+      <mdui-button id="recCancel" variant="text">取消</mdui-button>
+      <mdui-button id="recSubmit" variant="filled">储存旅程</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 对话框：愿望清单 ===== -->
+<mdui-dialog id="dlgWish" style="--dlg-w:640px">
+  <div class="dlg">
+    <h3>愿望清单</h3>
+    <div class="dlg-sub">把想去的州收进清单，或回顾你的旅程足迹。</div>
+    <div class="wish-tabs">
+      <button type="button" class="wish-tab active" id="wtWish">想去 <span class="wtab-n" id="wtWishN">0</span></button>
+      <button type="button" class="wish-tab" id="wtTl">旅程时间线</button>
+    </div>
+    <div id="wishBody"></div>
+    <div class="dlg-actions">
+      <mdui-button id="wishClose" variant="text">关闭</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<mdui-dialog id="dlgAch" style="--dlg-w:880px">
+  <div class="dlg">
+    <div style="display:flex;align-items:baseline;gap:14px">
+      <h3>特殊成就</h3>
+      <div class="ach-summary" id="achSummary" style="margin-bottom:0"></div>
+    </div>
+    <div class="dlg-sub" style="margin-top:6px">达成条件后自动解锁；标记「手动」的成就需自行勾选。点击成就卡片可查看条件。</div>
+    <div class="ach-cats" id="achCats"></div>
+    <div class="ach-grid" id="achGrid"></div>
+    <div class="dlg-actions">
+      <mdui-button id="achClose" variant="text">关闭</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 对话框：战报 ===== -->
+<mdui-dialog id="dlgReport" style="--dlg-w:560px">
+  <div class="dlg">
+    <h3>制霸战报</h3>
+    <div class="dlg-sub">你的巴西制霸进度总览，可复制文字、导出图片或导出资料档。</div>
+    <div id="reportBody"></div>
+    <div class="dlg-actions">
+      <mdui-button id="rpClose" variant="text">关闭</mdui-button>
+      <mdui-button id="rpCode" variant="tonal">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        复制识别码
+      </mdui-button>
+      <mdui-button id="rpCopy" variant="tonal">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        复制战报
+      </mdui-button>
+      <mdui-button id="rpImg" variant="tonal">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        导出图片
+      </mdui-button>
+      <mdui-button id="rpExport" variant="filled">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        导出资料档
+      </mdui-button>
+    </div>
+    <div class="report-danger">
+      <mdui-button id="rpDelete" variant="text" style="color:rgb(var(--mdui-color-error))">删除这张地图</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 对话框：旅游建议 ===== -->
+<mdui-dialog id="dlgSuggest" style="--dlg-w:560px">
+  <div class="dlg">
+    <h3>旅游建议</h3>
+    <div class="dlg-sub">依你的足迹与未完成的成就，推荐下一站。</div>
+    <div class="sug-list" id="sugList"></div>
+    <div class="dlg-actions">
+      <mdui-button id="sugClose" variant="text">关闭</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 对话框：好友排行 ===== -->
+<mdui-dialog id="dlgFriends" style="--dlg-w:640px">
+  <div class="dlg">
+    <h3>好友排行</h3>
+    <div class="dlg-sub">纯静态版没有云端：请好友「导出资料档」传给你，再导入比拼 — 排行只在你自己的浏览器里计算。</div>
+    <div class="fr-scroll" id="frScroll"></div>
+    <div class="dlg-actions">
+      <mdui-button id="frImport" variant="tonal">
+        <svg slot="icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+        导入好友资料档
+      </mdui-button>
+      <input type="file" id="friendImport" accept="application/json,.json" class="hidden">
+      <mdui-button id="frClose" variant="text">关闭</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 对话框：照片大图 ===== -->
+<mdui-dialog id="dlgPhoto" style="--dlg-w:520px">
+  <div class="dlg" style="text-align:center">
+    <div id="photoBigWrap"></div>
+    <div class="dlg-actions" style="justify-content:center">
+      <mdui-button id="photoClose" variant="text">关闭</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
+
+<!-- ===== 对话框：通用确认 ===== -->
+<mdui-dialog id="dlgConfirm" style="--dlg-w:400px">
+  <div class="dlg">
+    <h3 id="confirmTitle">确定？</h3>
+    <div class="dlg-sub" id="confirmDesc" style="margin-bottom:0"></div>
+    <div class="dlg-actions" style="margin-top:20px">
+      <mdui-button id="btnConfirmNo" variant="text">取消</mdui-button>
+      <mdui-button id="btnConfirmOk" variant="filled">确定</mdui-button>
+    </div>
+  </div>
+</mdui-dialog>
