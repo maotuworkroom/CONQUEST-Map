@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONQUEST-Map · 制霸地圖合集</title>
+<meta name="description" content="世界各地制霸地圖合集：日本、韓國、中國、美國、歐洲、澳洲、東南亞、俄羅斯、加拿大、冰島、中東、南美、印度。記錄你走過的每一寸世界。">
+<style>
+  :root {
+    --bg: #0e1420;
+    --bg-soft: #151d2e;
+    --card: #1a2338;
+    --card-hover: #202c47;
+    --line: #2b3a5c;
+    --text: #e8edf7;
+    --text-dim: #93a0bd;
+    --gold: #e8b35a;
+    --gold-soft: #f3d08c;
+    --radius: 16px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    background:
+      radial-gradient(1200px 500px at 15% -10%, rgba(232,179,90,.10), transparent 60%),
+      radial-gradient(900px 420px at 90% -10%, rgba(90,140,232,.12), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  header {
+    text-align: center;
+    padding: 64px 20px 30px;
+  }
+  header .badge {
+    display: inline-block;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    border: 1px solid rgba(232,179,90,.35);
+    border-radius: 999px;
+    padding: 4px 16px;
+    margin-bottom: 18px;
+  }
+  header h1 {
+    font-size: clamp(34px, 6vw, 56px);
+    font-weight: 800;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold) 55%, #c8923f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header p {
+    margin-top: 14px;
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .stats {
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .stats b { color: var(--gold); font-weight: 700; }
+  main.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+    max-width: 1200px;
+    margin: 26px auto 40px;
+    padding: 0 20px;
+  }
+  a.card {
+    position: relative;
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 22px 20px;
+    text-decoration: none;
+    color: var(--text);
+    overflow: hidden;
+    transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+  }
+  a.card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--gold), transparent);
+    opacity: 0;
+    transition: opacity .18s ease;
+  }
+  a.card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(232,179,90,.55);
+    background: var(--card-hover);
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  }
+  a.card:hover::before { opacity: 1; }
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .flag { font-size: 34px; line-height: 1; }
+  .count {
+    font-size: 12px;
+    color: var(--gold);
+    border: 1px solid rgba(232,179,90,.4);
+    border-radius: 999px;
+    padding: 2px 10px;
+    white-space: nowrap;
+  }
+  .name { font-size: 21px; font-weight: 700; letter-spacing: .5px; }
+  .sub { font-size: 13px; color: var(--text-dim); margin-top: 2px; letter-spacing: .5px; }
+  .desc {
+    margin-top: 12px;
+    font-size: 13.5px;
+    color: var(--text-dim);
+    line-height: 1.65;
+    min-height: 44px;
+  }
+  .go {
+    margin-top: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .go .arrow { transition: transform .18s ease; }
+  a.card:hover .go .arrow { transform: translateX(5px); }
+  .coming {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: transparent;
+    border: 1px dashed var(--line);
+    color: var(--text-dim);
+    font-size: 14px;
+    border-radius: var(--radius);
+    padding: 22px;
+    min-height: 210px;
+    letter-spacing: 1px;
+  }
+  footer {
+    text-align: center;
+    padding: 26px 20px 44px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+  footer a { color: var(--gold); text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge">TRAVEL · CONQUEST · MAP</div>
+  <h1>CONQUEST-Map</h1>
+  <p>記錄你走過的每一寸世界。選擇一個地區，打開對應的制霸地圖，開始你的旅程。</p>
+  <div class="stats"><b>13</b> 個地區 · <b>344</b> 個目的地 · 純靜態 · 資料只存本機瀏覽器</div>
+</header>
+
+<main class="grid">
+  <a class="card" href="japan-conquest/index.html">
+    <div class="card-top"><span class="flag">🇯🇵</span><span class="count">47 都道府縣</span></div>
+    <div class="name">日本制霸</div>
+    <div class="sub">Japan</div>
+    <div class="desc">櫻花、神社與一碗拉麵。從北海道的雪原到沖繩的海灘，制霸全日本。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="korea-conquest/index.html">
+    <div class="card-top"><span class="flag">🇰🇷</span><span class="count">17 道 / 市</span></div>
+    <div class="name">韓國制霸</div>
+    <div class="sub">Korea</div>
+    <div class="desc">首爾的霓虹、釜山的海風與濟州島的火山。從 DMZ 到南海，走遍韓半島。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="china-conquest/index.html">
+    <div class="card-top"><span class="flag">🇨🇳</span><span class="count">34 省級行政區</span></div>
+    <div class="name">中國制霸</div>
+    <div class="sub">China</div>
+    <div class="desc">從漠河到南海諸島，960 萬平方公里的山河。長城、高原與江南水鄉。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="usa-conquest/index.html">
+    <div class="card-top"><span class="flag">🇺🇸</span><span class="count">50 州 + DC</span></div>
+    <div class="name">美國制霸</div>
+    <div class="sub">United States</div>
+    <div class="desc">66 號公路、黃石公園與時代廣場。從東海岸到西海岸，橫跨星條旗。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="europe-conquest/index.html">
+    <div class="card-top"><span class="flag">🇪🇺</span><span class="count">7 大區域</span></div>
+    <div class="name">歐洲制霸</div>
+    <div class="sub">Europe</div>
+    <div class="desc">聖托里尼的日落、北歐的極光與東歐的古城。按區域制霸整個歐洲。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="australia-conquest/index.html">
+    <div class="card-top"><span class="flag">🇦🇺</span><span class="count">6 州 + 2 領地</span></div>
+    <div class="name">澳洲制霸</div>
+    <div class="sub">Australia</div>
+    <div class="desc">大堡礁的珊瑚、烏魯魯的落日與黃金海岸的浪。制霸整片南方大陸。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="sea-conquest/index.html">
+    <div class="card-top"><span class="flag">🏝️</span><span class="count">11 國</span></div>
+    <div class="name">東南亞制霸</div>
+    <div class="sub">Southeast Asia</div>
+    <div class="desc">微笑國度與熱帶群島。從曼谷的水上市場到峇里島的海灘，一路向南。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="russia-conquest/index.html">
+    <div class="card-top"><span class="flag">🇷🇺</span><span class="count">83 聯邦主體</span></div>
+    <div class="name">俄羅斯制霸</div>
+    <div class="sub">Russia</div>
+    <div class="desc">西伯利亞鐵路橫穿亞歐大陸，從莫斯科紅場到堪察加火山。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="canada-conquest/index.html">
+    <div class="card-top"><span class="flag">🇨🇦</span><span class="count">13 省 / 地區</span></div>
+    <div class="name">加拿大制霸</div>
+    <div class="sub">Canada</div>
+    <div class="desc">楓葉之國與落基山脈。從多倫多的天際線到黃刀的極光之夜。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="iceland-conquest/index.html">
+    <div class="card-top"><span class="flag">🇮🇸</span><span class="count">8 地區</span></div>
+    <div class="name">冰島制霸</div>
+    <div class="sub">Iceland</div>
+    <div class="desc">極光、冰川與火山之國。環島公路 1 號線，一公里都不放過。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="middle-east-conquest/index.html">
+    <div class="card-top"><span class="flag">🕌</span><span class="count">16 國家 / 地區</span></div>
+    <div class="name">中東制霸</div>
+    <div class="sub">Middle East</div>
+    <div class="desc">一千零一夜的沙漠傳奇。從杜拜的摩天大樓到佩特拉的玫瑰古城。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="south-america-conquest/index.html">
+    <div class="card-top"><span class="flag">🌎</span><span class="count">13 國</span></div>
+    <div class="name">南美制霸</div>
+    <div class="sub">South America</div>
+    <div class="desc">亞馬遜雨林、馬丘比丘與里約的嘉年華。從巴塔哥尼亞到赤道線。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <a class="card" href="india-conquest/index.html">
+    <div class="card-top"><span class="flag">🇮🇳</span><span class="count">36 邦 / 屬地</span></div>
+    <div class="name">印度制霸</div>
+    <div class="sub">India</div>
+    <div class="desc">泰姬陵與恆河聖城。從喜馬拉雅山腳到喀拉拉的水鄉，色彩斑斕的次大陸。</div>
+    <div class="go">進入地圖 <span class="arrow">→</span></div>
+  </a>
+
+  <div class="coming">更多地區製作中…<br>敬請期待</div>
+</main>
+
+<footer>
+  CONQUEST-Map · 純靜態制霸地圖合集 · <a href="https://github.com/maotuworkroom/CONQUEST-Map" target="_blank" rel="noopener">GitHub</a>
+</footer>
+</body>
+</html>

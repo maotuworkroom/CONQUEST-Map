@@ -30,8 +30,8 @@ def flag_svg(w=300, h=200):
     p.append("<path d='M0,0 L150,100 M150,0 L0,100' stroke='#CF142B' stroke-width='8'/>")
     p.append("<path d='M0,50 L150,50 M75,0 L75,100' stroke='#fff' stroke-width='14'/>")
     p.append("<path d='M0,50 L150,50 M75,0 L75,100' stroke='#CF142B' stroke-width='6'/>")
-    # southern cross (right area): 4 large 7-point stars + 1 small 5-point star
-    for (cx, cy, r, n) in [(232,148,15,7),(252,112,10,7),(272,166,10,7),(288,128,8,7),(258,186,5,5)]:
+    # commonwealth star (7-point, under the union jack) + southern cross (4 large 7-point + 1 small 5-point)
+    for (cx, cy, r, n) in [(75,60,12,7),(232,148,15,7),(252,112,10,7),(272,166,10,7),(288,128,8,7),(258,186,5,5)]:
         p.append("<path d='%s' fill='#fff'/>" % star_path(cx, cy, r, n))
     p.append("</svg>")
     return "".join(p)

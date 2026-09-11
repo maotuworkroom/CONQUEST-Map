@@ -2,23 +2,25 @@
 
 世界各地「制霸地圖」合集 —— 純靜態單頁應用，點選地圖、記錄旅程、累積分數、解鎖成就、升級等級。所有資料只存於本機瀏覽器（localStorage），無雲端。
 
+倉庫根目錄的 [index.html](./index.html) 是總入口頁，用瀏覽器打開即可選擇要查看的制霸地圖。
+
 ## 項目列表
 
 | 項目 | 目錄 | 說明 |
 |---|---|---|
 | 日本制霸 | `japan-conquest/` | 47 都道府縣制霸記錄器 |
-| 韓國制霸 | `korea-conquest/` | 韓國道/市制霸記錄器 |
-| 中國制霸 | `china-conquest/` | 中國省份制霸記錄器 |
+| 韓國制霸 | `korea-conquest/` | 韓國 17 個道/市制霸記錄器 |
+| 中國制霸 | `china-conquest/` | 中國 34 個省級行政區制霸記錄器 |
 | 美國制霸 | `usa-conquest/` | 50 州 + 華盛頓特區（51 個州級單位） |
-| 歐洲制霸 | `europe-conquest/` | 歐洲國家制霸記錄器 |
-| 澳洲制霸 | `australia-conquest/` | 澳洲制霸記錄器 |
-| 海洋制霸 | `sea-conquest/` | 海洋制霸（數據與構建腳本，頁面製作中） |
-| 俄羅斯制霸 | `russia-conquest/` | 俄羅斯聯邦主體制霸記錄器 |
-| 加拿大制霸 | `canada-conquest/` | 加拿大省份/地區制霸記錄器 |
-| 冰島制霸 | `iceland-conquest/` | 冰島地區制霸記錄器 |
-| 中東制霸 | `middle-east-conquest/` | 中東國家/地區制霸記錄器 |
-| 南美制霸 | `south-america-conquest/` | 南美洲國家制霸記錄器 |
-| 印度制霸 | `india-conquest/` | 印度邦/聯邦屬地制霸記錄器 |
+| 歐洲制霸 | `europe-conquest/` | 歐洲 7 大區域制霸記錄器 |
+| 澳洲制霸 | `australia-conquest/` | 澳洲 6 州 + 2 領地制霸記錄器 |
+| 東南亞制霸 | `sea-conquest/` | 東南亞 11 國制霸記錄器 |
+| 俄羅斯制霸 | `russia-conquest/` | 俄羅斯 83 個聯邦主體制霸記錄器 |
+| 加拿大制霸 | `canada-conquest/` | 加拿大 13 個省份/地區制霸記錄器 |
+| 冰島制霸 | `iceland-conquest/` | 冰島 8 個地區制霸記錄器 |
+| 中東制霸 | `middle-east-conquest/` | 中東 16 個國家/地區制霸記錄器 |
+| 南美制霸 | `south-america-conquest/` | 南美洲 13 國制霸記錄器 |
+| 印度制霸 | `india-conquest/` | 印度 36 個邦/聯邦屬地制霸記錄器 |
 
 ## 運行方式
 
