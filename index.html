@@ -3,281 +3,473 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CONQUEST-Map · 制霸地圖合集</title>
-<meta name="description" content="世界各地制霸地圖合集：日本、韓國、中國、美國、歐洲、澳洲、東南亞、俄羅斯、加拿大、冰島、中東、南美、印度。記錄你走過的每一寸世界。">
+<title>CONQUEST MAP · 制霸旅行地圖</title>
+<meta name="description" content="十三個地區、三百四十四個目的地。日本、韓國、中國、美國、歐洲、澳洲、東南亞、俄羅斯、加拿大、冰島、中東、南美、印度——記錄你走過的每一寸世界。">
+<link rel="preconnect" href="https://miaoda.feishu.cn">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
 <style>
-  :root {
-    --bg: #0e1420;
-    --bg-soft: #151d2e;
-    --card: #1a2338;
-    --card-hover: #202c47;
-    --line: #2b3a5c;
-    --text: #e8edf7;
-    --text-dim: #93a0bd;
-    --gold: #e8b35a;
-    --gold-soft: #f3d08c;
-    --radius: 16px;
+  :root{
+    --paper:#f6f1e5;
+    --paper-deep:#efe8d6;
+    --ink:#1e2d24;
+    --ink-soft:#4c5c52;
+    --accent:#cf4f28;
+    --accent-deep:#a93c1c;
+    --teal:#2f6f5e;
+    --gold:#a9852f;
+    --line:rgba(30,45,36,.14);
+    --white:#fffdf8;
+    --serif:"Noto Serif SC","Songti SC","STSong",serif;
+    --sans:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --ease:cubic-bezier(.22,1,.36,1);
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
-    background:
-      radial-gradient(1200px 500px at 15% -10%, rgba(232,179,90,.10), transparent 60%),
-      radial-gradient(900px 420px at 90% -10%, rgba(90,140,232,.12), transparent 60%),
-      var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    line-height: 1.6;
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans);
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
   }
-  header {
-    text-align: center;
-    padding: 64px 20px 30px;
+  /* 印刷噪點 */
+  body::after{
+    content:"";position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
   }
-  header .badge {
-    display: inline-block;
-    font-size: 13px;
-    letter-spacing: 3px;
-    color: var(--gold);
-    border: 1px solid rgba(232,179,90,.35);
-    border-radius: 999px;
-    padding: 4px 16px;
-    margin-bottom: 18px;
+  a{color:inherit;text-decoration:none}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  ::selection{background:rgba(207,79,40,.18)}
+
+  /* ===== 頂欄 ===== */
+  .topbar{
+    position:relative;z-index:20;
+    display:flex;align-items:center;justify-content:space-between;
+    max-width:1200px;margin:0 auto;padding:20px 24px;
   }
-  header h1 {
-    font-size: clamp(34px, 6vw, 56px);
-    font-weight: 800;
-    letter-spacing: 2px;
-    background: linear-gradient(135deg, var(--gold-soft), var(--gold) 55%, #c8923f);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:900;font-size:18px;letter-spacing:.14em}
+  .brand .plane-ico{color:var(--accent);flex:none}
+  .brand small{display:block;font-family:var(--sans);font-weight:400;font-size:10px;letter-spacing:.42em;color:var(--ink-soft);margin-top:1px}
+  .next-btn{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1.5px solid var(--ink);border-radius:999px;
+    background:transparent;color:var(--ink);
+    font-family:var(--sans);font-size:13.5px;font-weight:500;letter-spacing:.06em;
+    padding:9px 18px;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease),transform .2s var(--ease);
   }
-  header p {
-    margin-top: 14px;
-    color: var(--text-dim);
-    font-size: 15px;
-    max-width: 560px;
-    margin-left: auto;
-    margin-right: auto;
+  .next-btn:hover{background:var(--ink);color:var(--paper)}
+  .next-btn:active{transform:translateY(1px)}
+  .next-btn svg{transition:transform .45s var(--ease)}
+  .next-btn:hover svg{transform:rotate(-14deg) translate(1px,-1px)}
+
+  /* ===== HERO ===== */
+  .hero{
+    position:relative;
+    max-width:1200px;margin:0 auto;
+    padding:56px 24px 72px;
+    text-align:center;
   }
-  .stats {
-    margin-top: 18px;
-    font-size: 13px;
-    color: var(--text-dim);
+  .hero::before{ /* 經緯點陣 */
+    content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(30,45,36,.16) 1px, transparent 0),
+      linear-gradient(rgba(30,45,36,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,45,36,.045) 1px, transparent 1px);
+    background-size:26px 26px, 78px 78px, 78px 78px;
+    -webkit-mask-image:radial-gradient(ellipse 75% 85% at 50% 40%, #000 30%, transparent 78%);
+    mask-image:radial-gradient(ellipse 75% 85% at 50% 40%, #000 30%, transparent 78%);
   }
-  .stats b { color: var(--gold); font-weight: 700; }
-  main.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 18px;
-    max-width: 1200px;
-    margin: 26px auto 40px;
-    padding: 0 20px;
+  .hero-inner{position:relative;z-index:1}
+  .eyebrow{
+    display:inline-block;font-size:12px;letter-spacing:.5em;color:var(--gold);
+    border:1px solid rgba(169,133,47,.4);border-radius:999px;padding:5px 18px 5px 22px;margin-bottom:26px;
+    background:rgba(246,241,229,.7);
   }
-  a.card {
-    position: relative;
-    display: block;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 22px 22px 20px;
-    text-decoration: none;
-    color: var(--text);
-    overflow: hidden;
-    transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+  h1{
+    font-family:var(--serif);font-weight:900;
+    font-size:clamp(2.1rem,6.2vw,4.1rem);
+    line-height:1.22;letter-spacing:.03em;text-wrap:balance;
+    max-width:16em;margin:0 auto;
   }
-  a.card::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 3px;
-    background: linear-gradient(180deg, var(--gold), transparent);
-    opacity: 0;
-    transition: opacity .18s ease;
+  .lead{
+    margin:22px auto 0;max-width:34em;
+    font-size:clamp(14px,1.6vw,16px);color:var(--ink-soft);font-weight:300;letter-spacing:.04em;
   }
-  a.card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(232,179,90,.55);
-    background: var(--card-hover);
-    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  .stats{
+    display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+    margin-top:26px;font-family:var(--serif);font-weight:700;font-size:15px;color:var(--ink);
   }
-  a.card:hover::before { opacity: 1; }
-  .card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
+  .stats b{font-size:22px;color:var(--accent);margin-right:5px}
+  .stats .dot{width:4px;height:4px;border-radius:50%;background:var(--gold);opacity:.7}
+  .stats span{font-family:var(--sans);font-weight:400;font-size:13px;color:var(--ink-soft)}
+  .search{
+    position:relative;z-index:1;
+    max-width:420px;margin:34px auto 0;
   }
-  .flag { font-size: 34px; line-height: 1; }
-  .count {
-    font-size: 12px;
-    color: var(--gold);
-    border: 1px solid rgba(232,179,90,.4);
-    border-radius: 999px;
-    padding: 2px 10px;
-    white-space: nowrap;
+  .search svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--ink-soft);pointer-events:none}
+  .search input{
+    width:100%;border:1.5px solid var(--line);border-radius:999px;
+    background:rgba(255,253,248,.85);color:var(--ink);
+    font-family:var(--sans);font-size:14.5px;letter-spacing:.03em;
+    padding:13px 20px 13px 48px;outline:none;
+    transition:border-color .2s var(--ease),box-shadow .2s var(--ease);
   }
-  .name { font-size: 21px; font-weight: 700; letter-spacing: .5px; }
-  .sub { font-size: 13px; color: var(--text-dim); margin-top: 2px; letter-spacing: .5px; }
-  .desc {
-    margin-top: 12px;
-    font-size: 13.5px;
-    color: var(--text-dim);
-    line-height: 1.65;
-    min-height: 44px;
+  .search input::placeholder{color:var(--ink-soft);opacity:.65}
+  .search input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(47,111,94,.14)}
+  .search .empty{
+    display:none;position:absolute;left:0;right:0;top:calc(100% + 10px);
+    background:var(--white);border:1px solid var(--line);border-radius:14px;
+    padding:16px 18px;font-size:13.5px;color:var(--ink-soft);text-align:left;
+    box-shadow:0 14px 34px rgba(30,45,36,.12);
   }
-  .go {
-    margin-top: 16px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--gold);
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  .search .empty.show{display:block}
+
+  /* 紙飛機航線 */
+  .plane{position:absolute;z-index:2;color:var(--accent);pointer-events:none;opacity:.9}
+  .plane svg{display:block;filter:drop-shadow(0 3px 6px rgba(207,79,40,.35))}
+  .plane.path1{
+    top:0;left:4%;
+    offset-path:path("M 4% -10% C 34% 20%, 28% 56%, 90% 98%");
+    animation:fly1 11s var(--ease) infinite;
   }
-  .go .arrow { transition: transform .18s ease; }
-  a.card:hover .go .arrow { transform: translateX(5px); }
-  .coming {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    background: transparent;
-    border: 1px dashed var(--line);
-    color: var(--text-dim);
-    font-size: 14px;
-    border-radius: var(--radius);
-    padding: 22px;
-    min-height: 210px;
-    letter-spacing: 1px;
+  .plane.path2{
+    top:26px;right:1%;color:var(--teal);opacity:.55;
+    offset-path:path("M 96% 2% C 70% 12%, 74% 42%, 18% 88%");
+    animation:fly2 14s linear infinite;
   }
-  footer {
-    text-align: center;
-    padding: 26px 20px 44px;
-    color: var(--text-dim);
-    font-size: 13px;
+  @keyframes fly1{0%{offset-distance:0%}92%{offset-distance:100%}100%{offset-distance:100%;opacity:0}}
+  @keyframes fly2{0%{offset-distance:0%;opacity:0}8%{opacity:.55}90%{opacity:.55}100%{offset-distance:100%;opacity:0}}
+
+  /* ===== 卡片區 ===== */
+  main{position:relative;max-width:1200px;margin:0 auto;padding:0 24px 60px}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:10px 2px 26px}
+  .section-head h2{font-family:var(--serif);font-weight:700;font-size:24px;letter-spacing:.06em}
+  .section-head .count{font-size:13px;color:var(--ink-soft)}
+  .grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:22px;
+    opacity:0;transform:translateY(18px);
+    transition:opacity .7s var(--ease),transform .7s var(--ease);
   }
-  footer a { color: var(--gold); text-decoration: none; }
+  .grid.in{opacity:1;transform:none}
+  .card{
+    position:relative;border-radius:18px;overflow:hidden;
+    background:var(--white);border:1px solid var(--line);
+    box-shadow:0 2px 10px rgba(30,45,36,.05);
+    transition:transform .35s var(--ease),box-shadow .35s var(--ease),border-color .35s var(--ease);
+    display:flex;flex-direction:column;
+  }
+  .card:hover{transform:translateY(-6px);box-shadow:0 20px 44px rgba(30,45,36,.16);border-color:rgba(47,111,94,.4)}
+  .card-photo{position:relative;aspect-ratio:3/2;overflow:hidden;background:var(--paper-deep)}
+  .card-photo img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    transform:scale(1.001);
+    transition:transform .8s var(--ease);
+  }
+  .card:hover .card-photo img{transform:scale(1.055)}
+  .card-photo::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(20,28,23,0) 42%,rgba(20,28,23,.55) 100%);
+    opacity:.85;transition:opacity .35s var(--ease);
+  }
+  .card:hover .card-photo::after{opacity:1}
+  .badge{
+    position:absolute;z-index:2;top:14px;left:14px;
+    font-size:11.5px;letter-spacing:.12em;color:var(--white);
+    background:rgba(20,28,23,.55);border:1px solid rgba(255,255,255,.28);
+    backdrop-filter:blur(4px);border-radius:999px;padding:4px 12px;
+  }
+  .open{
+    position:absolute;z-index:2;left:50%;top:58%;transform:translate(-50%,-46%);
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:13px;font-weight:500;letter-spacing:.18em;color:var(--white);
+    border:1px solid rgba(255,255,255,.65);border-radius:999px;padding:8px 20px;
+    background:rgba(20,28,23,.28);
+    opacity:0;transition:opacity .3s var(--ease),transform .3s var(--ease),background .3s var(--ease);
+    pointer-events:none;
+  }
+  .card:hover .open{opacity:1;transform:translate(-50%,-50%)}
+  .card:active .open{background:rgba(207,79,40,.75)}
+  .card-info{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .card-info .row{display:flex;align-items:baseline;gap:10px}
+  .cname{font-family:var(--serif);font-weight:700;font-size:21px;letter-spacing:.05em;line-height:1.3}
+  .cen{font-size:12px;color:var(--ink-soft);letter-spacing:.14em}
+  .card-info p{font-size:13px;color:var(--ink-soft);font-weight:300;line-height:1.6;margin-top:2px}
+  .coming{
+    grid-column:span 2;
+    position:relative;border-radius:18px;border:1.5px dashed rgba(30,45,36,.3);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    min-height:230px;color:var(--ink-soft);background:rgba(239,232,214,.35);
+    font-family:var(--serif);letter-spacing:.2em;font-size:15px;
+  }
+  .coming small{font-family:var(--sans);font-size:12px;letter-spacing:.3em;opacity:.7}
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:34px 24px 48px;text-align:center;
+    font-size:12.5px;color:var(--ink-soft);letter-spacing:.12em;
+  }
+  footer a{color:var(--teal);border-bottom:1px solid transparent;transition:border-color .2s}
+  footer a:hover{border-color:var(--teal)}
+
+  @media (max-width:640px){
+    .topbar{padding:16px 18px}
+    .next-btn{padding:8px 14px;font-size:12.5px}
+    .hero{padding:44px 18px 56px}
+    main{padding:0 18px 44px}
+    .grid{gap:16px;grid-template-columns:1fr}
+    .coming{grid-column:auto}
+    .section-head{flex-direction:column;gap:4px;align-items:flex-start}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    html{scroll-behavior:auto}
+    .grid{opacity:1;transform:none}
+    .card:hover{transform:none}
+    .card:hover .card-photo img{transform:none}
+    .card .open{opacity:1;transform:translate(-50%,-50%)}
+  }
 </style>
 </head>
 <body>
-<header>
-  <div class="badge">TRAVEL · CONQUEST · MAP</div>
-  <h1>CONQUEST-Map</h1>
-  <p>記錄你走過的每一寸世界。選擇一個地區，打開對應的制霸地圖，開始你的旅程。</p>
-  <div class="stats"><b>13</b> 個地區 · <b>344</b> 個目的地 · 純靜態 · 資料只存本機瀏覽器</div>
+
+<header class="topbar">
+  <a class="brand" href="index.html" aria-label="CONQUEST MAP 首頁">
+    <svg class="plane-ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M2.5 12 21 3l-5 18-4-7-7-2z"/><path d="M12 14l5-7"/></svg>
+    <span>CONQUEST MAP<small>制霸旅行地圖</small></span>
+  </a>
+  <button class="next-btn" id="nextBtn" type="button">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M2.5 12 21 3l-5 18-4-7-7-2z"/></svg>
+    下一站去哪？
+  </button>
 </header>
 
-<main class="grid">
-  <a class="card" href="japan-conquest/index.html">
-    <div class="card-top"><span class="flag">🇯🇵</span><span class="count">47 都道府縣</span></div>
-    <div class="name">日本制霸</div>
-    <div class="sub">Japan</div>
-    <div class="desc">櫻花、神社與一碗拉麵。從北海道的雪原到沖繩的海灘，制霸全日本。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
+<section class="hero">
+  <svg class="plane path1" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2.5 12 21 3l-5 18-4-7-7-2z"/></svg>
+  <svg class="plane path2" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2.5 12 21 3l-5 18-4-7-7-2z"/></svg>
+  <div class="hero-inner">
+    <div class="eyebrow">CONQUEST MAP</div>
+    <h1>記錄你走過的<br>每一寸世界</h1>
+    <p class="lead">十三個地區、三百四十四個目的地。挑一個角落，蓋上你的第一個圖章。</p>
+    <div class="stats">
+      <span><b>13</b>個地區</span><span class="dot"></span>
+      <span><b>344</b>個目的地</span><span class="dot"></span>
+      <span>純靜態 · 免安裝</span>
+    </div>
+    <div class="search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="搜尋地區或城市…" autocomplete="off" aria-label="搜尋地區">
+      <div class="empty" id="empty" role="status">沒有找到相符的地區，試試「日本」「歐洲」或「南美」。</div>
+    </div>
+  </div>
+</section>
 
-  <a class="card" href="korea-conquest/index.html">
-    <div class="card-top"><span class="flag">🇰🇷</span><span class="count">17 道 / 市</span></div>
-    <div class="name">韓國制霸</div>
-    <div class="sub">Korea</div>
-    <div class="desc">首爾的霓虹、釜山的海風與濟州島的火山。從 DMZ 到南海，走遍韓半島。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="china-conquest/index.html">
-    <div class="card-top"><span class="flag">🇨🇳</span><span class="count">34 省級行政區</span></div>
-    <div class="name">中國制霸</div>
-    <div class="sub">China</div>
-    <div class="desc">從漠河到南海諸島，960 萬平方公里的山河。長城、高原與江南水鄉。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="usa-conquest/index.html">
-    <div class="card-top"><span class="flag">🇺🇸</span><span class="count">50 州 + DC</span></div>
-    <div class="name">美國制霸</div>
-    <div class="sub">United States</div>
-    <div class="desc">66 號公路、黃石公園與時代廣場。從東海岸到西海岸，橫跨星條旗。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="europe-conquest/index.html">
-    <div class="card-top"><span class="flag">🇪🇺</span><span class="count">7 大區域</span></div>
-    <div class="name">歐洲制霸</div>
-    <div class="sub">Europe</div>
-    <div class="desc">聖托里尼的日落、北歐的極光與東歐的古城。按區域制霸整個歐洲。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="australia-conquest/index.html">
-    <div class="card-top"><span class="flag">🇦🇺</span><span class="count">6 州 + 2 領地</span></div>
-    <div class="name">澳洲制霸</div>
-    <div class="sub">Australia</div>
-    <div class="desc">大堡礁的珊瑚、烏魯魯的落日與黃金海岸的浪。制霸整片南方大陸。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="sea-conquest/index.html">
-    <div class="card-top"><span class="flag">🏝️</span><span class="count">11 國</span></div>
-    <div class="name">東南亞制霸</div>
-    <div class="sub">Southeast Asia</div>
-    <div class="desc">微笑國度與熱帶群島。從曼谷的水上市場到峇里島的海灘，一路向南。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="russia-conquest/index.html">
-    <div class="card-top"><span class="flag">🇷🇺</span><span class="count">83 聯邦主體</span></div>
-    <div class="name">俄羅斯制霸</div>
-    <div class="sub">Russia</div>
-    <div class="desc">西伯利亞鐵路橫穿亞歐大陸，從莫斯科紅場到堪察加火山。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="canada-conquest/index.html">
-    <div class="card-top"><span class="flag">🇨🇦</span><span class="count">13 省 / 地區</span></div>
-    <div class="name">加拿大制霸</div>
-    <div class="sub">Canada</div>
-    <div class="desc">楓葉之國與落基山脈。從多倫多的天際線到黃刀的極光之夜。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="iceland-conquest/index.html">
-    <div class="card-top"><span class="flag">🇮🇸</span><span class="count">8 地區</span></div>
-    <div class="name">冰島制霸</div>
-    <div class="sub">Iceland</div>
-    <div class="desc">極光、冰川與火山之國。環島公路 1 號線，一公里都不放過。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="middle-east-conquest/index.html">
-    <div class="card-top"><span class="flag">🕌</span><span class="count">16 國家 / 地區</span></div>
-    <div class="name">中東制霸</div>
-    <div class="sub">Middle East</div>
-    <div class="desc">一千零一夜的沙漠傳奇。從杜拜的摩天大樓到佩特拉的玫瑰古城。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="south-america-conquest/index.html">
-    <div class="card-top"><span class="flag">🌎</span><span class="count">13 國</span></div>
-    <div class="name">南美制霸</div>
-    <div class="sub">South America</div>
-    <div class="desc">亞馬遜雨林、馬丘比丘與里約的嘉年華。從巴塔哥尼亞到赤道線。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <a class="card" href="india-conquest/index.html">
-    <div class="card-top"><span class="flag">🇮🇳</span><span class="count">36 邦 / 屬地</span></div>
-    <div class="name">印度制霸</div>
-    <div class="sub">India</div>
-    <div class="desc">泰姬陵與恆河聖城。從喜馬拉雅山腳到喀拉拉的水鄉，色彩斑斕的次大陸。</div>
-    <div class="go">進入地圖 <span class="arrow">→</span></div>
-  </a>
-
-  <div class="coming">更多地區製作中…<br>敬請期待</div>
+<main>
+  <div class="section-head">
+    <h2>目的地</h2>
+    <span class="count" id="cardCount">13 個地區</span>
+  </div>
+  <div class="grid" id="grid">
+    <a class="card" href="japan-conquest/index.html" data-tags="日本 japan 東京 tokyo 京都 北海道">
+      <div class="card-photo">
+        <img src="japan-conquest/assets/prefs/13_tokyo.jpg" alt="日本 · 東京" loading="lazy" decoding="async">
+        <span class="badge">47 都道府縣</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">日本</span><span class="cen">JAPAN</span></div>
+        <p>櫻花、神社與一碗熱騰騰的拉麵。</p>
+      </div>
+    </a>
+    <a class="card" href="korea-conquest/index.html" data-tags="韓國 korea 首爾 seoul 釜山 濟州">
+      <div class="card-photo">
+        <img src="korea-conquest/assets/prefs/01_seoul.jpg" alt="韓國 · 首爾" loading="lazy" decoding="async">
+        <span class="badge">17 道 · 市</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">韓國</span><span class="cen">KOREA</span></div>
+        <p>首爾的霓虹、釜山的海風、濟州的火山。</p>
+      </div>
+    </a>
+    <a class="card" href="china-conquest/index.html" data-tags="中國 china 北京 beijing 上海 四川 新疆">
+      <div class="card-photo">
+        <img src="china-conquest/assets/prefs/01_beijing.jpg" alt="中國 · 北京" loading="lazy" decoding="async">
+        <span class="badge">34 省級行政區</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">中國</span><span class="cen">CHINA</span></div>
+        <p>從漠河到南海，九百六十萬平方公里的山河。</p>
+      </div>
+    </a>
+    <a class="card" href="usa-conquest/index.html" data-tags="美國 usa 紐約 new york 加州 黃石">
+      <div class="card-photo">
+        <img src="usa-conquest/assets/states/32_new_york.jpg" alt="美國 · 紐約" loading="lazy" decoding="async">
+        <span class="badge">50 州 + DC</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">美國</span><span class="cen">UNITED STATES</span></div>
+        <p>66 號公路、黃石公園、時代廣場的燈火。</p>
+      </div>
+    </a>
+    <a class="card" href="europe-conquest/index.html" data-tags="歐洲 europe 希臘 巴黎 北歐">
+      <div class="card-photo">
+        <img src="europe-conquest/assets/regions/south.jpg" alt="歐洲 · 南歐" loading="lazy" decoding="async">
+        <span class="badge">7 大區域</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">歐洲</span><span class="cen">EUROPE</span></div>
+        <p>聖托里尼的日落，與北歐的極光。</p>
+      </div>
+    </a>
+    <a class="card" href="australia-conquest/index.html" data-tags="澳洲 australia 雪梨 悉尼 大堡礁">
+      <div class="card-photo">
+        <img src="australia-conquest/assets/prefs/01_nsw.jpg" alt="澳洲 · 新南威爾士" loading="lazy" decoding="async">
+        <span class="badge">6 州 + 2 領地</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">澳洲</span><span class="cen">AUSTRALIA</span></div>
+        <p>大堡礁的珊瑚、烏魯魯的落日、黃金海岸的浪。</p>
+      </div>
+    </a>
+    <a class="card" href="sea-conquest/index.html" data-tags="東南亞 sea 泰國 曼谷 越南 峇里島">
+      <div class="card-photo">
+        <img src="sea-conquest/assets/countries/01_thailand.jpg" alt="東南亞 · 泰國" loading="lazy" decoding="async">
+        <span class="badge">11 國</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">東南亞</span><span class="cen">SOUTHEAST ASIA</span></div>
+        <p>水上市場的清晨，與熱帶群島的黃昏。</p>
+      </div>
+    </a>
+    <a class="card" href="russia-conquest/index.html" data-tags="俄羅斯 russia 莫斯科 moscow 西伯利亞">
+      <div class="card-photo">
+        <img src="russia-conquest/assets/prefs/01_moscow.jpg" alt="俄羅斯 · 莫斯科" loading="lazy" decoding="async">
+        <span class="badge">83 聯邦主體</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">俄羅斯</span><span class="cen">RUSSIA</span></div>
+        <p>西伯利亞鐵路，從莫斯科一路向東。</p>
+      </div>
+    </a>
+    <a class="card" href="canada-conquest/index.html" data-tags="加拿大 canada 溫哥華 落基山">
+      <div class="card-photo">
+        <img src="canada-conquest/assets/prefs/01_bc.jpg" alt="加拿大 · 卑詩省" loading="lazy" decoding="async">
+        <span class="badge">13 省 · 地區</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">加拿大</span><span class="cen">CANADA</span></div>
+        <p>楓葉、落基山，與黃刀鎮的極光之夜。</p>
+      </div>
+    </a>
+    <a class="card" href="iceland-conquest/index.html" data-tags="冰島 iceland 雷克雅未克 極光 冰川">
+      <div class="card-photo">
+        <img src="iceland-conquest/assets/prefs/01_capital.jpg" alt="冰島 · 首都區" loading="lazy" decoding="async">
+        <span class="badge">8 地區</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">冰島</span><span class="cen">ICELAND</span></div>
+        <p>冰川、火山與極光，環島公路一號線。</p>
+      </div>
+    </a>
+    <a class="card" href="middle-east-conquest/index.html" data-tags="中東 middle east 杜拜 uae 以色列">
+      <div class="card-photo">
+        <img src="middle-east-conquest/assets/countries/14_uae.jpg" alt="中東 · 阿聯酋" loading="lazy" decoding="async">
+        <span class="badge">16 國家 · 地區</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">中東</span><span class="cen">MIDDLE EAST</span></div>
+        <p>一千零一夜的沙漠，與杜拜的天際線。</p>
+      </div>
+    </a>
+    <a class="card" href="south-america-conquest/index.html" data-tags="南美 south america 巴西 祕魯 馬丘比丘">
+      <div class="card-photo">
+        <img src="south-america-conquest/assets/countries/10_brazil.jpg" alt="南美 · 巴西" loading="lazy" decoding="async">
+        <span class="badge">13 國</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">南美</span><span class="cen">SOUTH AMERICA</span></div>
+        <p>亞馬遜雨林、馬丘比丘與里約嘉年華。</p>
+      </div>
+    </a>
+    <a class="card" href="india-conquest/index.html" data-tags="印度 india 德里 孟買 泰姬陵">
+      <div class="card-photo">
+        <img src="india-conquest/assets/prefs/07_delhi.jpg" alt="印度 · 德里" loading="lazy" decoding="async">
+        <span class="badge">36 邦 · 屬地</span>
+        <span class="open">開啟地圖</span>
+      </div>
+      <div class="card-info">
+        <div class="row"><span class="cname">印度</span><span class="cen">INDIA</span></div>
+        <p>泰姬陵、恆河，與色彩斑斕的次大陸。</p>
+      </div>
+    </a>
+    <div class="coming">更多地區製作中<small>下一站，由你決定</small></div>
+  </div>
 </main>
 
 <footer>
-  CONQUEST-Map · 純靜態制霸地圖合集 · <a href="https://github.com/maotuworkroom/CONQUEST-Map" target="_blank" rel="noopener">GitHub</a>
+  CONQUEST MAP · 純靜態制霸地圖合集 · <a href="https://github.com/maotuworkroom/CONQUEST-Map" target="_blank" rel="noopener">GitHub</a>
 </footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* 卡片區一次揭示 */
+  var grid = document.getElementById('grid');
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ grid.classList.add('in'); io.disconnect(); }
+      });
+    }, {threshold:.12});
+    io.observe(grid);
+  } else {
+    grid.classList.add('in');
+  }
+
+  /* 搜尋過濾 */
+  var q = document.getElementById('q');
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+  var empty = document.getElementById('empty');
+  var count = document.getElementById('cardCount');
+  function applyFilter(){
+    var kw = q.value.trim().toLowerCase();
+    var n = 0;
+    cards.forEach(function(c){
+      var hit = !kw || c.getAttribute('data-tags').toLowerCase().indexOf(kw) > -1;
+      c.style.display = hit ? '' : 'none';
+      if (hit) n++;
+    });
+    empty.classList.toggle('show', n === 0);
+    count.textContent = n + ' 個地區';
+  }
+  q.addEventListener('input', applyFilter);
+
+  /* 下一站去哪 */
+  var btn = document.getElementById('nextBtn');
+  btn.addEventListener('click', function(){
+    var visible = cards.filter(function(c){ return c.style.display !== 'none'; });
+    if (!visible.length) return;
+    var target = visible[Math.floor(Math.random() * visible.length)];
+    if (reduce) { window.location.href = target.getAttribute('href'); return; }
+    btn.disabled = true;
+    btn.style.opacity = '.75';
+    var orig = btn.textContent;
+    btn.textContent = '洗牌中…';
+    setTimeout(function(){ window.location.href = target.getAttribute('href'); }, 480);
+  });
+})();
+</script>
 </body>
 </html>
